@@ -241,34 +241,38 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 // ── CATALOG ──────────────────────────────────────────────────────────────────
 const CATALOG = [
-  {key:'sofa',     name:'Kanepe',      e:'🛋️',cat:'Oturma',  colorType:'fabric',
+  {key:'sofa',    name:'Kanepe',        e:'🛋️',cat:'Oturma',  colorType:'fabric',
    o:['The_Sofa_Polly','The_Sofa_Polly.1','The_Sofa_Polly.2','The_Sofa_Polly.3','The_Sofa_Polly.4']},
-  {key:'cushion',  name:'Yastık',      e:'🪑',cat:'Oturma',  colorType:'fabric',
+  {key:'cushion', name:'Yastık Seti',   e:'🪑',cat:'Oturma',  colorType:'fabric',
    o:['Cushion','Cushion.001','Pillow_1']},
-  {key:'armchair', name:'Koltuk',      e:'🪑',cat:'Oturma',  colorType:'fabric',
-   o:['Armchair','armchair_seat','armchair_back','armchair_legs']},
-  {key:'tv',       name:'TV Ünitesi',  e:'📺',cat:'Oturma',  colorType:'wood',
-   o:['lcd','body_2','mid_2','left_side','right_side','top_panel','top_panel.1','middle','light_1','light_2','drawer_2','drawer_3','drawer_5','drawer_6','handle_2','handle_3','handle_5','handle_6']},
-  {key:'table',    name:'Sehpa',       e:'🪵',cat:'Oturma',  colorType:'wood',   o:['Cube.021']},
-  {key:'shelf',    name:'Raf',         e:'📚',cat:'Depolama',colorType:'wood',   o:['Cube.017']},
-  {key:'bookcase', name:'Kitaplık',    e:'📖',cat:'Depolama',colorType:'wood',   o:['Cube.1','Cube.2','Cube.3','Cube.4']},
-  {key:'box_a',    name:'Kutu A',      e:'📦',cat:'Depolama',colorType:'fabric', o:['Cube.300','Cube.301','Cube.302']},
-  {key:'box_b',    name:'Kutu B',      e:'📦',cat:'Depolama',colorType:'fabric', o:['Cube.303','Cube.304','Cube.305']},
-  {key:'curtain',  name:'Perde',       e:'🪟',cat:'Dekor',   colorType:'fabric',
+  {key:'tv',      name:'TV Ünitesi',    e:'📺',cat:'Oturma',  colorType:'wood',
+   o:['lcd','body_2','mid_2','left_side','right_side','top_panel','top_panel.1','middle',
+      'light_1','light_2','drawer_2','drawer_3','drawer_5','drawer_6',
+      'handle_2','handle_3','handle_5','handle_6','back_wall']},
+  {key:'table',   name:'Sehpa',         e:'🪵',cat:'Oturma',  colorType:'wood',   o:['Cube.021']},
+  {key:'shelf',   name:'Raf',           e:'📚',cat:'Depolama',colorType:'wood',   o:['Cube.017']},
+  {key:'bookcase',name:'Kitaplık',      e:'📖',cat:'Depolama',colorType:'wood',   o:['Cube.1','Cube.2','Cube.3','Cube.4']},
+  {key:'box_a',   name:'Kutu A',        e:'📦',cat:'Depolama',colorType:'fabric', o:['Cube.300','Cube.301','Cube.302']},
+  {key:'box_b',   name:'Kutu B',        e:'📦',cat:'Depolama',colorType:'fabric', o:['Cube.303','Cube.304','Cube.305']},
+  {key:'curtain', name:'Perde',         e:'🪟',cat:'Dekor',   colorType:'fabric',
    o:['Curtain','Curtain.1','Curtain_Rod','Curtain_handle','Curtain_handle.001','Grommets','Grommets.1']},
-  {key:'window',   name:'Pencere',     e:'🔲',cat:'Yapı',    colorType:'wood',
-   o:['Window','Window_1','Window_2','Window_3','Window_4','Window_5']},
-  {key:'cactus',   name:'Kaktüs',      e:'🌵',cat:'Bitki',   colorType:'plant',  o:['Cube.018']},
-  {key:'plant',    name:'Bitki',       e:'🌿',cat:'Bitki',   colorType:'plant',  o:['BezierCircle.024','BezierCircle.024_1']},
-  {key:'rug_r',    name:'Halı (Kırmızı)',e:'🟥',cat:'Zemin', colorType:'fabric', o:['Plane.016']},
-  {key:'rug_b',    name:'Halı (Kahve)',e:'🟫',cat:'Zemin',   colorType:'fabric', o:['Plane.017']},
-  {key:'deco_a',   name:'Duvar Dekoru',e:'🔷',cat:'Dekor',   colorType:'wood',   o:['Cube.024']},
-  {key:'deco_b',   name:'Dekor B',     e:'🟡',cat:'Dekor',   colorType:'wood',   o:['Cube.025']},
-  {key:'deco_c',   name:'Mavi Kutu',   e:'🔵',cat:'Dekor',   colorType:'wood',   o:['Cube.029']},
-  {key:'deco_set', name:'Dekor Set',   e:'🎨',cat:'Dekor',   colorType:'wood',   o:['Cube.200','Cube.201','Cube.202']},
-  {key:'col_a',    name:'Sütun A',     e:'⬜',cat:'Yapı',    colorType:'metal',  o:['Cylinder.175','Cylinder.175_1']},
-  {key:'col_b',    name:'Sütun B',     e:'⬛',cat:'Yapı',    colorType:'metal',  o:['Cylinder.176','Cylinder.176_1']},
-  {key:'poly',     name:'Obje',        e:'🔷',cat:'Dekor',   colorType:'wood',   o:['Polygon']},
+  {key:'window',  name:'Pencere',       e:'🔲',cat:'Yapı',    colorType:'wood',
+   o:['Window','Window_1','Window_2','Window_3','Window_4','Window_5','Window_6','Window_7','Window_8']},
+  {key:'cactus',  name:'Kaktüs',        e:'🌵',cat:'Bitki',   colorType:'plant',  o:['Cube.018']},
+  {key:'plant',   name:'Bitki',         e:'🌿',cat:'Bitki',   colorType:'plant',  o:['BezierCircle.024','BezierCircle.024_1']},
+  {key:'rug_r',   name:'Halı (Kırm.)',  e:'🟥',cat:'Zemin',   colorType:'fabric', o:['Plane.016']},
+  {key:'rug_b',   name:'Halı (Kahve)',  e:'🟫',cat:'Zemin',   colorType:'fabric', o:['Plane.017']},
+  {key:'deco_a',  name:'Dekor A',       e:'🔷',cat:'Dekor',   colorType:'wood',   o:['Cube.024']},
+  {key:'deco_b',  name:'Dekor B',       e:'🟡',cat:'Dekor',   colorType:'wood',   o:['Cube.025']},
+  {key:'deco_c',  name:'Dekor C',       e:'🔵',cat:'Dekor',   colorType:'wood',   o:['Cube.029']},
+  {key:'deco_set',name:'Dekor Set',     e:'🎨',cat:'Dekor',   colorType:'wood',   o:['Cube.200','Cube.201','Cube.202']},
+  {key:'col_a',   name:'Sütun',         e:'⬜',cat:'Yapı',    colorType:'metal',  o:['Cylinder.175','Cylinder.175_1']},
+  {key:'col_b',   name:'Sütun Koyu',    e:'⬛',cat:'Yapı',    colorType:'metal',  o:['Cylinder.176','Cylinder.176_1']},
+  {key:'poly',    name:'Obje',          e:'🔷',cat:'Dekor',   colorType:'wood',   o:['Polygon']},
+  // Fallback-only items (no OBJ match, use procedural geometry)
+  {key:'armchair',name:'Koltuk',        e:'🪑',cat:'Oturma',  colorType:'fabric', o:[]},
+  {key:'lamp',    name:'Lamba',         e:'💡',cat:'Dekor',   colorType:'metal',  o:[]},
+  {key:'mirror',  name:'Ayna',          e:'🪞',cat:'Dekor',   colorType:'metal',  o:[]},
 ];
 const ALL_CATS = ['Tümü', ...new Set(CATALOG.map(i=>i.cat))];
 
@@ -322,8 +326,8 @@ function init(){
   renderer.toneMappingExposure = 1.1;
 
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x8aaabb);
-  scene.fog = new THREE.Fog(0x8aaabb, 20, 35);
+  // Background matches wall color — seamless even if camera peeks above ceiling
+  scene.background = new THREE.Color(0xfdf6e3);
 
   const W = window.innerWidth, H = window.innerHeight;
   camera = new THREE.PerspectiveCamera(65, W/H, 0.05, 60);
@@ -364,7 +368,7 @@ const ROOM_W=8, ROOM_H=3.2, ROOM_D=8;
 
 function buildRoom(){
   const W=ROOM_W, H=ROOM_H, D=ROOM_D;
-  mats.floor = new THREE.MeshStandardMaterial({color:0xd4b898,roughness:.82,metalness:.02,side:THREE.DoubleSide});
+  mats.floor = new THREE.MeshStandardMaterial({color:0xb89060,roughness:.82,metalness:.02,side:THREE.DoubleSide});
   mats.wall  = new THREE.MeshStandardMaterial({color:0xfdf6e3,roughness:.9,metalness:0,side:THREE.DoubleSide});
   mats.ceil  = new THREE.MeshStandardMaterial({color:0xffffff,roughness:.85,metalness:0,side:THREE.DoubleSide});
 
@@ -456,78 +460,89 @@ async function loadOBJ(){
 
 function parseOBJ(root){
   const byName={};
-  root.traverse(c=>{
-    if(c.name) byName[c.name]=c;
-    if(c.isMesh){
-      c.castShadow=true; c.receiveShadow=true;
-      ([c.material].flat()).forEach(m=>{
-        m.roughness=.8; m.metalness=.05;
-      });
-    }
-  });
+  // Update world matrices so c.matrixWorld reflects actual OBJ positions
+  root.updateWorldMatrix(true, true);
+  root.traverse(c=>{ if(c.name) byName[c.name]=c; });
 
   CATALOG.forEach(item=>{
-    const grp=new THREE.Group(); grp.name=item.key;
-    let found=0;
+    if(!item.o.length) return; // fallback-only items handled in buildFallback
+
+    // Collect all meshes, baking their world-space transforms into geometry
+    const flatMeshes=[];
     item.o.forEach(n=>{
       const src=byName[n]; if(!src) return;
-      const cl=src.clone(true);
-      cl.traverse(c=>{
-        if(!c.isMesh) return;
-        c.castShadow=true; c.receiveShadow=true;
-        ([c.material].flat()).forEach(m=>{m.roughness=.8;m.metalness=.05;});
+      src.traverse(c=>{
+        if(!c.isMesh||!c.geometry) return;
+        c.updateWorldMatrix(true, false);
+        const geo=c.geometry.clone();
+        geo.applyMatrix4(c.matrixWorld); // bake pos/rot/scale into vertex coords
+        geo.computeVertexNormals();
+        const mats=([c.material].flat()).map(m=>{
+          const n=m.clone(); n.roughness=.8; n.metalness=.05; return n;
+        });
+        const mesh=new THREE.Mesh(geo, mats.length===1?mats[0]:mats);
+        mesh.castShadow=mesh.receiveShadow=true;
+        flatMeshes.push(mesh);
       });
-      grp.add(cl); found++;
     });
-    if(!found) return;
+    if(!flatMeshes.length) return;
 
-    // Get bounding box, center geometry at origin, floor at y=0
+    const grp=new THREE.Group(); grp.name=item.key;
+    flatMeshes.forEach(m=>grp.add(m));
+
+    // Bounding box — geometry is now in world space so setFromObject is correct
     const box=new THREE.Box3().setFromObject(grp);
     const ctr=box.getCenter(new THREE.Vector3());
     const sz=box.getSize(new THREE.Vector3());
     const minY=box.min.y;
 
+    // Center at origin, floor at y=0
     grp.traverse(c=>{
       if(!c.isMesh||!c.geometry) return;
-      const geo=c.geometry.clone();
-      geo.translate(-ctr.x,-minY,-ctr.z);
-      c.geometry=geo;
+      c.geometry.translate(-ctr.x,-minY,-ctr.z);
     });
 
-    // Scale to 2.5 units max footprint
+    // OBJ uses ~cm units → 1 OBJ unit = 0.01 Three.js unit (1m)
+    // Cap at 2.5m max footprint for very large items
     const footprint=Math.max(sz.x,sz.z,.1);
-    const scale=Math.min(2.5/footprint,1.2);
+    const scale=Math.min(0.01, 2.5/footprint);
     grp.scale.setScalar(scale);
     templates[item.key]=grp;
   });
+
+  // Build fallbacks for any catalog items that had no OBJ match
+  buildFallback(true);
 }
 
-function buildFallback(){
+function buildFallback(missingOnly=false){
   const defs={
     sofa:    ()=>mkBox(2.2,.72,.95,0xc8886a),
     cushion: ()=>mkBox(.5,.22,.4,0xe8a880),
-    armchair:()=>mkBox(1.0,.7,.9,0xb87860),
+    armchair:()=>{const g=new THREE.Group();g.add(mkBox(1.0,.72,.9,0xb87860));const b=mkBox(1.0,.65,.15,0xaa7055);b.position.set(0,.72+.325,-.375);g.add(b);return g;},
     tv:      ()=>{const g=new THREE.Group();g.add(mkBox(1.8,.06,.42,0x3a3030));const s=mkBox(1.6,.9,.06,0x222222);s.position.set(0,.51,.18);g.add(s);return g;},
     table:   ()=>mkBox(.9,.52,.9,0xb89060),
     shelf:   ()=>mkBox(.9,.6,.32,0x9a7848),
     bookcase:()=>mkBox(1.2,1.8,.32,0xa88050),
-    box_a:   ()=>mkBox(.6,.8,.6,0xa09080),
-    box_b:   ()=>mkBox(.6,.8,.6,0x908070),
-    curtain: ()=>mkBox(.08,2.4,1.2,0xd4a888),
-    window:  ()=>mkBox(.08,1.4,1.0,0xc8dde8),
-    cactus:  ()=>{const g=new THREE.Group();g.add(mkBox(.22,.8,.22,0x6a9860));return g;},
-    plant:   ()=>mkBox(.45,.9,.45,0x70a870),
-    rug_r:   ()=>mkBox(2.2,.04,1.5,0xc84040),
-    rug_b:   ()=>mkBox(2.2,.04,1.5,0x9a7040),
+    box_a:   ()=>mkBox(.5,.6,.5,0xa09080),
+    box_b:   ()=>mkBox(.5,.6,.5,0x908070),
+    curtain: ()=>mkBox(.06,2.4,1.2,0xd4a888),
+    window:  ()=>mkBox(.06,1.4,1.0,0xc8dde8),
+    cactus:  ()=>mkBox(.22,.8,.22,0x6a9860),
+    plant:   ()=>mkBox(.4,.9,.4,0x70a870),
+    rug_r:   ()=>mkBox(2.2,.03,1.5,0xc84040),
+    rug_b:   ()=>mkBox(2.2,.03,1.5,0x9a7040),
     deco_a:  ()=>mkBox(.4,.4,.1,0x8ab8c8),
     deco_b:  ()=>mkBox(.3,.22,.3,0xe8d060),
     deco_c:  ()=>mkBox(.4,.4,.4,0x6080c8),
-    deco_set:()=>mkBox(.55,.55,.2,0xe8c080),
-    col_a:   ()=>mkCyl(.15,1.2,0xe0d8c0),
-    col_b:   ()=>mkCyl(.12,1.0,0xd0c8b0),
+    deco_set:()=>mkBox(.5,.5,.18,0xe8c080),
+    col_a:   ()=>mkCyl(.12,2.4,0xe0d8c0),
+    col_b:   ()=>mkCyl(.1,2.0,0xd0c8b0),
     poly:    ()=>mkBox(.6,.6,.6,0xd0b890),
+    lamp:    ()=>{const g=new THREE.Group();g.add(mkCyl(.05,1.4,0xd0c8b0));const s=new THREE.Mesh(new THREE.SphereGeometry(.18,12,8),new THREE.MeshStandardMaterial({color:0xfff8e0,emissive:0xffe080,emissiveIntensity:.5}));s.position.y=1.4;g.add(s);return g;},
+    mirror:  ()=>{const g=new THREE.Group();g.add(mkBox(.08,1.4,0.8,0xd0c8b8));const m=new THREE.Mesh(new THREE.PlaneGeometry(.7,1.2),new THREE.MeshStandardMaterial({color:0xc8d8e8,metalness:.9,roughness:.1}));m.position.set(.05,.7,0);g.add(m);return g;},
   };
   Object.entries(defs).forEach(([k,fn])=>{
+    if(missingOnly && templates[k]) return; // skip if already built from OBJ
     const val=fn();
     const g=val instanceof THREE.Group?val:(()=>{const g=new THREE.Group();g.add(val);return g;})();
     g.name=k; templates[k]=g;
