@@ -219,8 +219,6 @@ canvas{position:fixed;inset:0;width:100%!important;height:100%!important;display
   <div class="rpsec"><div class="rplab">Duvar</div><div class="swatches" id="sw-wall"></div></div>
   <div class="divider"></div>
   <div class="rpsec"><div class="rplab">Zemin</div><div class="swatches" id="sw-floor"></div></div>
-  <div class="divider"></div>
-  <div class="rpsec"><div class="rplab">Tavan</div><div class="swatches" id="sw-ceil"></div></div>
 </div>
 
 <!-- COLOR PANEL -->
@@ -328,15 +326,15 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.05;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xEEE5D5); // matches default wall color
+scene.background = new THREE.Color(0xB4C8D8); // open-top sky — matches html background
 
 const camera = new THREE.PerspectiveCamera(55, W/H, 0.05, 80);
 // Fixed isometric corner view — camera in front-right, looking at back-left corner
 setCameraDefault();
 
 function setCameraDefault(){
-  camera.position.set(7, 7.5, 7);
-  camera.lookAt(0, 0.5, 0);
+  camera.position.set(6, 8, 9);
+  camera.lookAt(-0.5, 0.5, -0.5);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -350,7 +348,6 @@ function buildRoom(){
 
   mats.wall  = new THREE.MeshStandardMaterial({color:0xEEE5D5, roughness:.88, side:THREE.DoubleSide});
   mats.floor = new THREE.MeshStandardMaterial({color:0xBE9E6E, roughness:.85, metalness:.02, side:THREE.DoubleSide});
-  mats.ceil  = new THREE.MeshStandardMaterial({color:0xF5F0E8, roughness:.9, side:THREE.DoubleSide});
 
   // Floor
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(W, D), mats.floor);
@@ -371,12 +368,6 @@ function buildRoom(){
   lw.rotation.y = Math.PI/2;
   lw.receiveShadow = true;
   scene.add(lw);
-
-  // Ceiling (hidden — background color matches ceiling)
-  const cm = new THREE.Mesh(new THREE.PlaneGeometry(W, D), mats.ceil);
-  cm.rotation.x = Math.PI/2;
-  cm.position.y = H;
-  scene.add(cm);
 
   // Floor grid
   const grid = new THREE.GridHelper(W, 16, 0xC4B090, 0xD8C8A8);
@@ -676,10 +667,33 @@ let dragging = false, dragOffset = new THREE.Vector3();
 let tapCount = 0, tapTimer = null;
 
 const cv = renderer.domElement;
+
+// Pointer events (desktop / Android)
 cv.addEventListener('pointerdown', onDown, {passive:false});
 cv.addEventListener('pointermove', onMove, {passive:false});
 cv.addEventListener('pointerup',   onUp,   {passive:false});
 cv.addEventListener('pointercancel', ()=>{ pStart=null; dragging=false; }, {passive:false});
+
+// Touch events — iOS Safari emulator compatibility
+cv.addEventListener('touchstart', e=>{
+  e.preventDefault();
+  if(e.touches.length===0) return;
+  const t = e.touches[0];
+  onDown({clientX:t.clientX, clientY:t.clientY, preventDefault:()=>{}});
+}, {passive:false});
+cv.addEventListener('touchmove', e=>{
+  e.preventDefault();
+  if(e.touches.length===0) return;
+  const t = e.touches[0];
+  onMove({clientX:t.clientX, clientY:t.clientY, preventDefault:()=>{}});
+}, {passive:false});
+cv.addEventListener('touchend', e=>{
+  e.preventDefault();
+  if(e.changedTouches.length===0) return;
+  const t = e.changedTouches[0];
+  onUp({clientX:t.clientX, clientY:t.clientY, preventDefault:()=>{}});
+}, {passive:false});
+cv.addEventListener('touchcancel', ()=>{ pStart=null; dragging=false; }, {passive:false});
 
 function onDown(e){
   e.preventDefault();
@@ -879,9 +893,8 @@ function buildUI(){
   buildGrid();
 
   // Room swatches
-  makeSwatch('sw-wall',  WALL_SW,  c=>{ mats.wall.color.set(c); scene.background = new THREE.Color(c); });
+  makeSwatch('sw-wall',  WALL_SW,  c=>{ mats.wall.color.set(c); });
   makeSwatch('sw-floor', FLOOR_SW, c=>mats.floor.color.set(c));
-  makeSwatch('sw-ceil',  CEIL_SW,  c=>mats.ceil.color.set(c));
 
   // Panel toggle
   document.getElementById('panel-toggle').onclick = togglePanel;
