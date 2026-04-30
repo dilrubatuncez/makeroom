@@ -2,889 +2,973 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Make Room</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 :root{
-  --a:#e8856a;--a2:#d4705a;
-  --panel:rgba(255,255,255,0.96);
-  --bg:#f0ebe4;--tx:#2d2420;--tx2:#9a8878;--bd:#e0d5cc;
-  --r:16px;--sh:0 8px 32px rgba(0,0,0,.16);
+  --acc:#FF6B47;--acc2:#e05530;
+  --white:rgba(255,255,255,.97);
+  --bg:#F2EDE8;--tx:#1C1410;--tx2:#9A8A7E;--bd:#E4D8D0;
 }
-html,body{width:100%;height:100%;overflow:hidden;background:#b8ccd8;font-family:-apple-system,'Segoe UI',sans-serif;touch-action:none}
-canvas{position:fixed;inset:0;display:block}
+html,body{width:100%;height:100%;overflow:hidden;background:#b4c8d8;
+  font-family:-apple-system,'SF Pro Display',sans-serif;touch-action:none}
+canvas{position:fixed;inset:0;width:100%!important;height:100%!important;display:block;touch-action:none}
 
-/* ── Top HUD ── */
-#hud{position:fixed;top:0;left:0;right:0;z-index:30;
-  display:flex;align-items:center;gap:8px;
-  padding:max(14px,env(safe-area-inset-top)) 14px 8px;pointer-events:none}
-.pill{background:var(--panel);backdrop-filter:blur(14px);border-radius:24px;
-  padding:8px 14px;box-shadow:var(--sh);font-size:13px;font-weight:700;
-  pointer-events:all;cursor:pointer;border:none;color:var(--tx);
-  display:flex;align-items:center;gap:5px;transition:transform .12s;white-space:nowrap}
-.pill:active{transform:scale(.92)}
-.logo{font-size:15px;font-weight:900;color:var(--a);background:var(--panel);
-  backdrop-filter:blur(14px);border-radius:24px;padding:8px 14px;box-shadow:var(--sh);pointer-events:none}
-.logo b{color:var(--tx)}
-.sp{flex:1}
+/* ───── TOP BAR ───── */
+#topbar{
+  position:fixed;top:0;left:0;right:0;z-index:40;
+  padding:max(14px,env(safe-area-inset-top)) 16px 10px;
+  display:flex;align-items:center;justify-content:space-between;
+  pointer-events:none;
+}
+.logo{font-size:20px;font-weight:900;letter-spacing:-.5px;
+  background:var(--white);border-radius:24px;padding:9px 16px;
+  box-shadow:0 4px 20px rgba(0,0,0,.12);pointer-events:all;color:var(--tx)}
+.logo span{color:var(--acc)}
+.top-btns{display:flex;gap:8px}
+.icon-btn{
+  width:42px;height:42px;border-radius:50%;border:none;cursor:pointer;
+  background:var(--white);box-shadow:0 4px 20px rgba(0,0,0,.12);
+  font-size:18px;display:flex;align-items:center;justify-content:center;
+  pointer-events:all;transition:transform .12s}
+.icon-btn:active{transform:scale(.88)}
 
-/* ── Selection overlay (top) ── */
-#sel-bar{position:fixed;top:0;left:0;right:0;z-index:50;
-  display:flex;gap:8px;align-items:center;justify-content:center;
-  padding:max(14px,env(safe-area-inset-top)) 14px 8px;flex-wrap:wrap;
-  transform:translateY(-200%);transition:transform .3s cubic-bezier(.32,1.2,.42,1)}
-#sel-bar.show{transform:translateY(0)}
-.sbtn{background:var(--panel);backdrop-filter:blur(14px);border-radius:24px;
-  padding:8px 16px;box-shadow:var(--sh);font-size:13px;font-weight:700;
-  border:none;cursor:pointer;color:var(--tx);transition:transform .1s;white-space:nowrap}
-.sbtn:active{transform:scale(.9)}
-.sbtn.acc{background:var(--a);color:#fff}
-.sbtn.del{color:#e33}
+/* ───── ACTION BAR (furniture selected) ───── */
+#actbar{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  padding:max(14px,env(safe-area-inset-top)) 12px 10px;
+  display:flex;align-items:center;gap:8px;justify-content:center;
+  transform:translateY(-120%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+#actbar.show{transform:translateY(0)}
+.act-btn{
+  flex:1;max-width:90px;padding:10px 4px;border:none;cursor:pointer;
+  border-radius:16px;font-size:12px;font-weight:700;
+  background:var(--white);box-shadow:0 4px 20px rgba(0,0,0,.14);
+  color:var(--tx);display:flex;flex-direction:column;align-items:center;gap:3px;
+  transition:transform .1s}
+.act-btn:active{transform:scale(.88)}
+.act-btn .ai{font-size:18px}
+.act-btn.acc{background:var(--acc);color:#fff}
+.act-btn.red{color:#D93025}
 
-/* ── Place ring ── */
-#ring{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
-  pointer-events:none;z-index:20;opacity:0;transition:opacity .3s}
-#ring.on{opacity:1}
-.ring-inner{width:62px;height:62px;border-radius:50%;
-  border:3px solid var(--a);background:rgba(232,133,106,.15);
-  display:flex;align-items:center;justify-content:center;font-size:26px;
-  animation:pulse 1.1s infinite}
-@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+/* ───── GHOST HINT ───── */
+#hint{
+  position:fixed;bottom:calc(var(--panel-peek) + 20px);left:50%;
+  transform:translateX(-50%);z-index:35;
+  background:rgba(20,12,8,.75);color:#fff;
+  padding:10px 22px;border-radius:24px;font-size:13px;font-weight:600;
+  pointer-events:none;opacity:0;transition:opacity .25s;white-space:nowrap;
+  backdrop-filter:blur(8px)
+}
+#hint.show{opacity:1}
 
-/* ── Bottom Nav ── */
-#nav{position:fixed;bottom:0;left:0;right:0;z-index:40;
-  background:var(--panel);backdrop-filter:blur(16px);
-  border-top:1px solid var(--bd);
-  display:flex;justify-content:space-around;
-  padding:6px 0 max(10px,env(safe-area-inset-bottom));
-  box-shadow:0 -2px 20px rgba(0,0,0,.08)}
-.nb{display:flex;flex-direction:column;align-items:center;gap:2px;
-  background:none;border:none;cursor:pointer;padding:5px 12px;
-  color:var(--tx2);font-size:10px;font-weight:600;transition:color .15s;flex:1}
-.nb .i{font-size:22px;line-height:1}
-.nb.on{color:var(--a)}
-.nb:active{opacity:.6}
-
-/* ── Furniture Sheet ── */
-#sheet{position:fixed;left:0;right:0;bottom:0;z-index:39;
-  background:var(--panel);backdrop-filter:blur(16px);
-  border-radius:24px 24px 0 0;
-  box-shadow:0 -4px 40px rgba(0,0,0,.14);
-  transition:transform .35s cubic-bezier(.32,1.2,.42,1);
-  padding-bottom:max(10px,env(safe-area-inset-bottom))}
-#sheet.hide{transform:translateY(calc(100% - 72px))}
-.sh-bar{width:36px;height:4px;border-radius:2px;background:var(--bd);margin:10px auto 0;cursor:pointer}
-.sh-head{display:flex;align-items:center;padding:7px 16px 5px;cursor:pointer;gap:8px}
-.sh-title{font-size:14px;font-weight:800;color:var(--tx)}
-.sh-sub{font-size:11px;color:var(--tx2);margin-left:auto}
-#cats{display:flex;gap:6px;padding:0 14px 9px;overflow-x:auto;scrollbar-width:none}
-#cats::-webkit-scrollbar{display:none}
-.cat{padding:5px 13px;border-radius:20px;border:1.5px solid var(--bd);
-  font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;
+/* ───── BOTTOM PANEL ───── */
+:root{--panel-peek:72px}
+#panel{
+  position:fixed;left:0;right:0;bottom:0;z-index:30;
+  background:var(--white);border-radius:28px 28px 0 0;
+  box-shadow:0 -6px 40px rgba(0,0,0,.13);
+  transform:translateY(calc(100% - var(--panel-peek)));
+  transition:transform .38s cubic-bezier(.32,1.2,.42,1);
+  padding-bottom:max(16px,env(safe-area-inset-bottom));
+  max-height:72vh;overflow:hidden;display:flex;flex-direction:column;
+}
+#panel.open{transform:translateY(0)}
+.panel-handle-row{
+  padding:10px 16px 6px;display:flex;align-items:center;gap:10px;cursor:pointer;flex-shrink:0}
+.phandle{width:40px;height:4px;border-radius:2px;background:var(--bd);margin:0 auto}
+.panel-tabs{
+  display:flex;gap:6px;padding:4px 16px 10px;overflow-x:auto;
+  scrollbar-width:none;flex-shrink:0}
+.panel-tabs::-webkit-scrollbar{display:none}
+.ptab{
+  padding:6px 14px;border-radius:20px;border:1.5px solid var(--bd);
+  font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer;
   background:transparent;color:var(--tx2);transition:all .14s;flex-shrink:0}
-.cat.on{background:var(--a);color:#fff;border-color:var(--a)}
-#grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
-  padding:0 14px 10px;max-height:220px;overflow-y:auto;scrollbar-width:none}
-#grid::-webkit-scrollbar{display:none}
-.fi{display:flex;flex-direction:column;align-items:center;gap:3px;
-  padding:10px 4px 8px;border-radius:12px;background:#f8f4f0;
-  cursor:pointer;border:2px solid transparent;transition:all .13s;user-select:none}
-.fi:active{transform:scale(.88)}
-.fi.on{border-color:var(--a);background:#fff5f0;box-shadow:0 0 0 3px rgba(232,133,106,.2)}
-.fi .e{font-size:28px;line-height:1}
-.fi .n{font-size:9px;font-weight:600;color:var(--tx2);text-align:center;line-height:1.3}
+.ptab.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+#fgrid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:10px;
+  padding:0 16px 12px;overflow-y:auto;scrollbar-width:none;flex:1}
+#fgrid::-webkit-scrollbar{display:none}
+.fi{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  padding:12px 4px 10px;border-radius:14px;background:#F7F2EE;
+  cursor:pointer;border:2px solid transparent;transition:all .13s}
+.fi:active{transform:scale(.86)}
+.fi.on{border-color:var(--acc);background:#FFF4F1;box-shadow:0 0 0 3px rgba(255,107,71,.18)}
+.fi .fe{font-size:30px;line-height:1}
+.fi .fn{font-size:9px;font-weight:700;color:var(--tx2);text-align:center;line-height:1.3;margin-top:2px}
 
-/* ── Room Sheet ── */
-#rsheet{position:fixed;left:0;right:0;bottom:0;z-index:38;
-  background:var(--panel);backdrop-filter:blur(16px);
-  border-radius:24px 24px 0 0;box-shadow:0 -4px 40px rgba(0,0,0,.14);
-  transform:translateY(100%);transition:transform .35s cubic-bezier(.32,1.2,.42,1);
-  padding-bottom:max(10px,env(safe-area-inset-bottom));max-height:70vh;overflow-y:auto}
-#rsheet.open{transform:translateY(0)}
-.rsh{display:flex;align-items:center;padding:14px 16px 8px}
-.rsh h3{font-size:16px;font-weight:800;color:var(--tx)}
-.rx{margin-left:auto;background:none;border:none;font-size:20px;color:var(--tx2);cursor:pointer;padding:4px}
-.rl{padding:0 16px 14px}
-.rlb{font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:9px}
-.swrow{display:flex;gap:7px;flex-wrap:wrap}
-.sw{width:34px;height:34px;border-radius:8px;cursor:pointer;
-  border:2.5px solid transparent;transition:all .12s;box-shadow:0 1px 4px rgba(0,0,0,.14);flex-shrink:0}
-.sw:active{transform:scale(.82)}
-.sw.on{border-color:var(--a);box-shadow:0 0 0 3px rgba(232,133,106,.32)}
-.div{height:1px;background:var(--bd);margin:0 16px 14px}
+/* ───── ROOM PANEL ───── */
+#roompanel{
+  position:fixed;left:0;right:0;bottom:0;z-index:31;
+  background:var(--white);border-radius:28px 28px 0 0;
+  box-shadow:0 -6px 40px rgba(0,0,0,.15);
+  transform:translateY(100%);transition:transform .38s cubic-bezier(.32,1.2,.42,1);
+  padding-bottom:max(16px,env(safe-area-inset-bottom));
+  max-height:60vh;overflow-y:auto}
+#roompanel.open{transform:translateY(0)}
+.rph{display:flex;align-items:center;padding:16px 16px 8px}
+.rph h3{font-size:16px;font-weight:800;color:var(--tx)}
+.rph-close{margin-left:auto;background:none;border:none;font-size:22px;color:var(--tx2);cursor:pointer;padding:4px;line-height:1}
+.rpsec{padding:0 16px 16px}
+.rplab{font-size:11px;font-weight:800;color:var(--tx2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.swatch{
+  width:36px;height:36px;border-radius:10px;cursor:pointer;flex-shrink:0;
+  border:2.5px solid transparent;box-shadow:0 2px 6px rgba(0,0,0,.15);transition:all .12s}
+.swatch:active{transform:scale(.8)}
+.swatch.on{border-color:var(--acc);box-shadow:0 0 0 3px rgba(255,107,71,.3)}
+.divider{height:1px;background:var(--bd);margin:4px 16px 16px}
 
-/* ── Color Sheet (furniture) ── */
-#csheet{position:fixed;left:0;right:0;bottom:0;z-index:41;
-  background:var(--panel);backdrop-filter:blur(16px);
-  border-radius:24px 24px 0 0;box-shadow:0 -4px 40px rgba(0,0,0,.2);
-  transform:translateY(100%);transition:transform .35s cubic-bezier(.32,1.2,.42,1);
-  padding-bottom:max(10px,env(safe-area-inset-bottom))}
-#csheet.open{transform:translateY(0)}
-.csh{display:flex;align-items:center;padding:14px 16px 8px}
-.csh h3{font-size:15px;font-weight:800;color:var(--tx)}
-.csh-close{margin-left:auto;background:none;border:none;font-size:20px;color:var(--tx2);cursor:pointer;padding:4px}
-.ctab-row{display:flex;gap:6px;padding:0 16px 10px;overflow-x:auto;scrollbar-width:none}
-.ctab{padding:5px 12px;border-radius:16px;border:1.5px solid var(--bd);font-size:11px;
-  font-weight:700;cursor:pointer;background:transparent;color:var(--tx2);white-space:nowrap;transition:all .13s}
-.ctab.on{background:var(--a);color:#fff;border-color:var(--a)}
-#cpal{display:flex;gap:8px;flex-wrap:wrap;padding:0 16px 14px}
-.cp{width:38px;height:38px;border-radius:50%;cursor:pointer;border:2.5px solid transparent;
-  box-shadow:0 1px 4px rgba(0,0,0,.18);transition:all .12s;flex-shrink:0}
-.cp:active{transform:scale(.82)}
-.cp.on{border-color:var(--a);box-shadow:0 0 0 3px rgba(232,133,106,.35)}
+/* ───── COLOR PANEL ───── */
+#colorpanel{
+  position:fixed;left:0;right:0;bottom:0;z-index:52;
+  background:var(--white);border-radius:28px 28px 0 0;
+  box-shadow:0 -6px 40px rgba(0,0,0,.18);
+  transform:translateY(100%);transition:transform .38s cubic-bezier(.32,1.2,.42,1);
+  padding-bottom:max(16px,env(safe-area-inset-bottom))}
+#colorpanel.open{transform:translateY(0)}
+.cph{display:flex;align-items:center;padding:16px 16px 10px}
+.cph h3{font-size:15px;font-weight:800;color:var(--tx)}
+.cph-close{margin-left:auto;background:none;border:none;font-size:22px;color:var(--tx2);cursor:pointer;padding:4px}
+.ctabs{display:flex;gap:6px;padding:0 16px 12px;overflow-x:auto;scrollbar-width:none}
+.ctabs::-webkit-scrollbar{display:none}
+.ctab{
+  padding:5px 13px;border-radius:16px;border:1.5px solid var(--bd);
+  font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;
+  background:transparent;color:var(--tx2);transition:all .13s}
+.ctab.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+#ccolors{display:flex;gap:10px;flex-wrap:wrap;padding:0 16px 16px}
+.cc{
+  width:42px;height:42px;border-radius:50%;cursor:pointer;flex-shrink:0;
+  border:2.5px solid transparent;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:all .12s}
+.cc:active{transform:scale(.8)}
+.cc.on{border-color:var(--acc);box-shadow:0 0 0 3px rgba(255,107,71,.3)}
 
-/* ── Toast ── */
-#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(12px);
-  background:rgba(30,20,15,.82);color:#fff;padding:9px 20px;border-radius:20px;
-  font-size:13px;font-weight:600;pointer-events:none;z-index:60;
-  opacity:0;transition:all .28s;white-space:nowrap}
+/* ───── LOADING ───── */
+#loader{
+  position:fixed;inset:0;z-index:100;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+.lspin{width:48px;height:48px;border:4px solid var(--bd);border-top-color:var(--acc);
+  border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loader h2{font-size:24px;font-weight:900;color:var(--tx)}
+#loader p{font-size:13px;color:var(--tx2)}
+.lbar{width:200px;height:5px;border-radius:3px;background:var(--bd);overflow:hidden}
+.lfill{height:100%;background:var(--acc);width:0%;transition:width .3s;border-radius:3px}
+
+/* ───── TOAST ───── */
+#toast{
+  position:fixed;bottom:calc(var(--panel-peek) + 24px);left:50%;
+  transform:translateX(-50%) translateY(10px);
+  background:rgba(20,12,8,.82);color:#fff;padding:10px 22px;
+  border-radius:24px;font-size:13px;font-weight:600;
+  pointer-events:none;z-index:60;opacity:0;transition:all .25s;white-space:nowrap;
+  backdrop-filter:blur(8px)}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* ── Loading ── */
-#ld{position:fixed;inset:0;z-index:100;background:var(--bg);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px}
-.spin{width:46px;height:46px;border:4px solid var(--bd);border-top-color:var(--a);
-  border-radius:50%;animation:sp .75s linear infinite}
-@keyframes sp{to{transform:rotate(360deg)}}
-#ld h2{font-size:22px;font-weight:900;color:var(--tx)}
-#ld p{font-size:13px;color:var(--tx2)}
-.bar{width:200px;height:5px;border-radius:3px;background:var(--bd);overflow:hidden}
-.fill{height:100%;background:var(--a);width:0%;transition:width .3s;border-radius:3px}
 </style>
 </head>
 <body>
 
-<div id="ld">
-  <div class="spin"></div>
+<!-- LOADER -->
+<div id="loader">
+  <div class="lspin"></div>
   <h2>Make Room</h2>
-  <p id="ltxt">Modeller yükleniyor...</p>
-  <div class="bar"><div class="fill" id="lfill"></div></div>
+  <p id="ltxt">Yükleniyor...</p>
+  <div class="lbar"><div class="lfill" id="lfill"></div></div>
 </div>
 
-<canvas id="cv"></canvas>
+<canvas id="c"></canvas>
 
-<!-- Top HUD -->
-<div id="hud">
-  <div class="logo">Make<b>Room</b></div>
-  <div class="sp"></div>
-  <button class="pill" onclick="window.undoLast()">↩ Geri</button>
-  <button class="pill" onclick="window.snap2screenshot()">📸</button>
-</div>
-
-<!-- Selection Bar -->
-<div id="sel-bar">
-  <button class="sbtn acc" onclick="window.openColorSheet()">🎨 Renk</button>
-  <button class="sbtn" onclick="window.rotateSelected(90)">↻ Döndür</button>
-  <button class="sbtn" onclick="window.duplicateSelected()">⎘ Kopyala</button>
-  <button class="sbtn del" onclick="window.deleteSelected()">✕ Sil</button>
-</div>
-
-<!-- Place Ring -->
-<div id="ring"><div class="ring-inner">👆</div></div>
-
-<!-- Bottom Nav -->
-<div id="nav">
-  <button class="nb on" id="nav-f" onclick="showSheet('f')">
-    <span class="i">🛋️</span>Mobilyalar
-  </button>
-  <button class="nb" id="nav-r" onclick="showSheet('r')">
-    <span class="i">🎨</span>Oda
-  </button>
-  <button class="nb" id="nav-cam" onclick="window.resetCamera()">
-    <span class="i">📷</span>Kamera
-  </button>
-  <button class="nb" id="nav-u" onclick="window.clearRoom()">
-    <span class="i">🗑️</span>Temizle
-  </button>
-</div>
-
-<!-- Furniture Sheet -->
-<div id="sheet" class="hide">
-  <div class="sh-bar" onclick="toggleSheet()"></div>
-  <div class="sh-head" onclick="toggleSheet()">
-    <div class="sh-title">🛋️ Mobilya Kataloğu</div>
-    <div class="sh-sub" id="sh-sub">Seç ve yerleştir</div>
+<!-- TOP BAR -->
+<div id="topbar">
+  <div class="logo">Make<span>Room</span></div>
+  <div class="top-btns">
+    <button class="icon-btn" id="btn-room" title="Oda">🎨</button>
+    <button class="icon-btn" id="btn-ss"   title="Fotoğraf">📸</button>
   </div>
-  <div id="cats"></div>
-  <div id="grid"></div>
 </div>
 
-<!-- Room Sheet -->
-<div id="rsheet">
-  <div class="rsh"><h3>🏠 Oda Tasarımı</h3><button class="rx" onclick="hideRsheet()">✕</button></div>
-  <div class="rl"><div class="rlb">Duvar Rengi</div><div class="swrow" id="sw-w"></div></div>
-  <div class="div"></div>
-  <div class="rl"><div class="rlb">Zemin</div><div class="swrow" id="sw-f"></div></div>
-  <div class="div"></div>
-  <div class="rl"><div class="rlb">Tavan</div><div class="swrow" id="sw-c"></div></div>
+<!-- ACTION BAR (shows when furniture selected) -->
+<div id="actbar">
+  <button class="act-btn acc" id="act-color"><div class="ai">🎨</div><div>Renk</div></button>
+  <button class="act-btn" id="act-rot"><div class="ai">↻</div><div>Döndür</div></button>
+  <button class="act-btn" id="act-dup"><div class="ai">⎘</div><div>Kopyala</div></button>
+  <button class="act-btn red" id="act-del"><div class="ai">✕</div><div>Sil</div></button>
 </div>
 
-<!-- Furniture Color Sheet -->
-<div id="csheet">
-  <div class="csh"><h3>🎨 Renk Değiştir</h3><button class="csh-close" onclick="closeCsheet()">✕</button></div>
-  <div class="ctab-row" id="ctabs"></div>
-  <div id="cpal"></div>
+<!-- HINT LABEL -->
+<!-- BOTTOM PANEL -->
+<div id="panel">
+  <div class="panel-handle-row" id="panel-toggle">
+    <div class="phandle"></div>
+  </div>
+  <div class="panel-tabs" id="ptabs"></div>
+  <div id="fgrid"></div>
 </div>
 
+<!-- ROOM PANEL -->
+<div id="roompanel">
+  <div class="rph"><h3>🏠 Oda Tasarımı</h3><button class="rph-close" id="rph-close">✕</button></div>
+  <div class="rpsec"><div class="rplab">Duvar</div><div class="swatches" id="sw-wall"></div></div>
+  <div class="divider"></div>
+  <div class="rpsec"><div class="rplab">Zemin</div><div class="swatches" id="sw-floor"></div></div>
+  <div class="divider"></div>
+  <div class="rpsec"><div class="rplab">Tavan</div><div class="swatches" id="sw-ceil"></div></div>
+</div>
+
+<!-- COLOR PANEL -->
+<div id="colorpanel">
+  <div class="cph"><h3>🎨 Renk Değiştir</h3><button class="cph-close" id="cph-close">✕</button></div>
+  <div class="ctabs" id="ctabs"></div>
+  <div id="ccolors"></div>
+</div>
+
+<div id="hint"></div>
 <div id="toast"></div>
+
 
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/"}}</script>
-
 <script type="module">
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-// ── CATALOG ──────────────────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════
+   CATALOG
+═══════════════════════════════════════════════════════ */
 const CATALOG = [
-  {key:'sofa',    name:'Kanepe',        e:'🛋️',cat:'Oturma',  colorType:'fabric',
-   o:['The_Sofa_Polly','The_Sofa_Polly.1','The_Sofa_Polly.2','The_Sofa_Polly.3','The_Sofa_Polly.4']},
-  {key:'cushion', name:'Yastık Seti',   e:'🪑',cat:'Oturma',  colorType:'fabric',
-   o:['Cushion','Cushion.001','Pillow_1']},
-  {key:'tv',      name:'TV Ünitesi',    e:'📺',cat:'Oturma',  colorType:'wood',
-   o:['lcd','body_2','mid_2','left_side','right_side','top_panel','top_panel.1','middle',
-      'light_1','light_2','drawer_2','drawer_3','drawer_5','drawer_6',
-      'handle_2','handle_3','handle_5','handle_6','back_wall']},
-  {key:'table',   name:'Sehpa',         e:'🪵',cat:'Oturma',  colorType:'wood',   o:['Cube.021']},
-  {key:'shelf',   name:'Raf',           e:'📚',cat:'Depolama',colorType:'wood',   o:['Cube.017']},
-  {key:'bookcase',name:'Kitaplık',      e:'📖',cat:'Depolama',colorType:'wood',   o:['Cube.1','Cube.2','Cube.3','Cube.4']},
-  {key:'box_a',   name:'Kutu A',        e:'📦',cat:'Depolama',colorType:'fabric', o:['Cube.300','Cube.301','Cube.302']},
-  {key:'box_b',   name:'Kutu B',        e:'📦',cat:'Depolama',colorType:'fabric', o:['Cube.303','Cube.304','Cube.305']},
-  {key:'curtain', name:'Perde',         e:'🪟',cat:'Dekor',   colorType:'fabric',
-   o:['Curtain','Curtain.1','Curtain_Rod','Curtain_handle','Curtain_handle.001','Grommets','Grommets.1']},
-  {key:'window',  name:'Pencere',       e:'🔲',cat:'Yapı',    colorType:'wood',
+  // Oturma
+  {key:'sofa',    name:'Kanepe',      e:'🛋️', cat:'Oturma',
+   ct:'fabric', o:['The_Sofa_Polly','The_Sofa_Polly.1','The_Sofa_Polly.2','The_Sofa_Polly.3','The_Sofa_Polly.4']},
+  {key:'cushion', name:'Yastık',      e:'🪑', cat:'Oturma',
+   ct:'fabric', o:['Cushion','Cushion.001','Pillow_1']},
+  {key:'armchair',name:'Koltuk',      e:'🪑', cat:'Oturma',   ct:'fabric', o:[]},
+  {key:'tv',      name:'TV Ünitesi',  e:'📺', cat:'Oturma',
+   ct:'wood',   o:['lcd','body_2','mid_2','left_side','right_side','top_panel','top_panel.1',
+                   'middle','light_1','light_2','drawer_2','drawer_3','drawer_5','drawer_6',
+                   'handle_2','handle_3','handle_5','handle_6','back_wall']},
+  {key:'table',   name:'Sehpa',       e:'🪵', cat:'Oturma',   ct:'wood',   o:['Cube.021']},
+  // Depolama
+  {key:'bookcase',name:'Kitaplık',    e:'📚', cat:'Depolama', ct:'wood',   o:['Cube.1','Cube.2','Cube.3','Cube.4']},
+  {key:'shelf',   name:'Raf',         e:'🗄️', cat:'Depolama', ct:'wood',   o:['Cube.017']},
+  {key:'box_a',   name:'Kutu A',      e:'📦', cat:'Depolama', ct:'fabric', o:['Cube.300','Cube.301','Cube.302']},
+  {key:'box_b',   name:'Kutu B',      e:'📦', cat:'Depolama', ct:'fabric', o:['Cube.303','Cube.304','Cube.305']},
+  // Dekor
+  {key:'curtain', name:'Perde',       e:'🪟', cat:'Dekor',
+   ct:'fabric', o:['Curtain','Curtain.1','Curtain_Rod','Curtain_handle','Curtain_handle.001','Grommets','Grommets.1']},
+  {key:'plant',   name:'Bitki',       e:'🌿', cat:'Dekor',    ct:'plant',  o:['BezierCircle.024','BezierCircle.024_1']},
+  {key:'cactus',  name:'Kaktüs',      e:'🌵', cat:'Dekor',    ct:'plant',  o:['Cube.018']},
+  {key:'deco_a',  name:'Dekor A',     e:'🔷', cat:'Dekor',    ct:'wood',   o:['Cube.024']},
+  {key:'deco_b',  name:'Dekor B',     e:'🟡', cat:'Dekor',    ct:'wood',   o:['Cube.025']},
+  {key:'deco_c',  name:'Dekor C',     e:'🔵', cat:'Dekor',    ct:'wood',   o:['Cube.029']},
+  {key:'deco_set',name:'Dekor Set',   e:'🎨', cat:'Dekor',    ct:'wood',   o:['Cube.200','Cube.201','Cube.202']},
+  {key:'lamp',    name:'Lamba',       e:'💡', cat:'Dekor',    ct:'metal',  o:[]},
+  {key:'mirror',  name:'Ayna',        e:'🪞', cat:'Dekor',    ct:'metal',  o:[]},
+  // Zemin
+  {key:'rug_r',   name:'Halı Kırm.',  e:'🟥', cat:'Zemin',    ct:'fabric', o:['Plane.016']},
+  {key:'rug_b',   name:'Halı Kahve',  e:'🟫', cat:'Zemin',    ct:'fabric', o:['Plane.017']},
+  // Yapı
+  {key:'window',  name:'Pencere',     e:'🔲', cat:'Yapı',     ct:'wood',
    o:['Window','Window_1','Window_2','Window_3','Window_4','Window_5','Window_6','Window_7','Window_8']},
-  {key:'cactus',  name:'Kaktüs',        e:'🌵',cat:'Bitki',   colorType:'plant',  o:['Cube.018']},
-  {key:'plant',   name:'Bitki',         e:'🌿',cat:'Bitki',   colorType:'plant',  o:['BezierCircle.024','BezierCircle.024_1']},
-  {key:'rug_r',   name:'Halı (Kırm.)',  e:'🟥',cat:'Zemin',   colorType:'fabric', o:['Plane.016']},
-  {key:'rug_b',   name:'Halı (Kahve)',  e:'🟫',cat:'Zemin',   colorType:'fabric', o:['Plane.017']},
-  {key:'deco_a',  name:'Dekor A',       e:'🔷',cat:'Dekor',   colorType:'wood',   o:['Cube.024']},
-  {key:'deco_b',  name:'Dekor B',       e:'🟡',cat:'Dekor',   colorType:'wood',   o:['Cube.025']},
-  {key:'deco_c',  name:'Dekor C',       e:'🔵',cat:'Dekor',   colorType:'wood',   o:['Cube.029']},
-  {key:'deco_set',name:'Dekor Set',     e:'🎨',cat:'Dekor',   colorType:'wood',   o:['Cube.200','Cube.201','Cube.202']},
-  {key:'col_a',   name:'Sütun',         e:'⬜',cat:'Yapı',    colorType:'metal',  o:['Cylinder.175','Cylinder.175_1']},
-  {key:'col_b',   name:'Sütun Koyu',    e:'⬛',cat:'Yapı',    colorType:'metal',  o:['Cylinder.176','Cylinder.176_1']},
-  {key:'poly',    name:'Obje',          e:'🔷',cat:'Dekor',   colorType:'wood',   o:['Polygon']},
-  // Fallback-only items (no OBJ match, use procedural geometry)
-  {key:'armchair',name:'Koltuk',        e:'🪑',cat:'Oturma',  colorType:'fabric', o:[]},
-  {key:'lamp',    name:'Lamba',         e:'💡',cat:'Dekor',   colorType:'metal',  o:[]},
-  {key:'mirror',  name:'Ayna',          e:'🪞',cat:'Dekor',   colorType:'metal',  o:[]},
+  {key:'col_a',   name:'Sütun',       e:'⬜', cat:'Yapı',     ct:'metal',  o:['Cylinder.175','Cylinder.175_1']},
+  {key:'col_b',   name:'Sütun Koyu',  e:'⬛', cat:'Yapı',     ct:'metal',  o:['Cylinder.176','Cylinder.176_1']},
 ];
-const ALL_CATS = ['Tümü', ...new Set(CATALOG.map(i=>i.cat))];
+const CATS = ['Tümü',...new Set(CATALOG.map(i=>i.cat))];
 
-// Room color palettes
-const WALL_C  = ['#ffffff','#fdf6e3','#fff0e8','#f9d6c8','#f0d0d8','#dcc8dc','#c0ccdc','#c8dcd0','#b8d0b8','#8a9aaa','#4a3828','#1e1e2e'];
-const FLOOR_C = ['#f5f0e8','#e8d8c0','#d4b898','#c0a080','#a88060','#c8c0b0','#989080','#808878','#8a7060','#504030','#302010','#1a1210'];
-const CEIL_C  = ['#ffffff','#f8f4f0','#fdf9f5','#fff8f0','#f0f8ff','#e8f0f8','#f8ffe8','#e8f8f0'];
-
-// Furniture color palettes by type
-const COLOR_PALETTES = {
+// Color palettes
+const PAL = {
   fabric:[
-    {name:'Doğal',colors:['#f5f0e8','#e8dcc8','#d4b898','#c49878','#a87850','#8a6040','#6a4030','#4a2820']},
-    {name:'Renkli',colors:['#e8c8b8','#d88878','#c86858','#b04838','#a03028','#88203a','#702050','#502048']},
-    {name:'Soğuk', colors:['#b8c8d8','#98a8c8','#7888b8','#5870a8','#405898','#304088','#203070','#182058']},
-    {name:'Nötr',  colors:['#f0f0f0','#d8d8d8','#c0c0c0','#a8a8a8','#909090','#787878','#606060','#404040']},
+    {n:'Doğal', c:['#F5EFE6','#E8D8C0','#D4B898','#C49878','#A87850','#8A6040','#6A4030','#4A2820']},
+    {n:'Pastel',c:['#F9D8D8','#F0B8C0','#E098A8','#C87890','#A05878','#804060','#602848','#401830']},
+    {n:'Soğuk', c:['#D8E4F0','#B8C8E0','#98ACD0','#7890C0','#5874A8','#405890','#283C78','#182860']},
+    {n:'Nötr',  c:['#F0F0F0','#D8D8D8','#C0C0C0','#A8A8A8','#909090','#787878','#606060','#404040']},
   ],
   wood:[
-    {name:'Açık',  colors:['#f5e8d0','#e8d0a8','#d4b880','#c0a060','#a88040','#906030','#784820','#603010']},
-    {name:'Koyu',  colors:['#8a6848','#705030','#583820','#402810','#301808','#201008','#382018','#4a3020']},
-    {name:'Boyalı',colors:['#e8e8e8','#c0d0e0','#b0c8b0','#d8c8a0','#d0a888','#c07860','#a85838','#883818']},
+    {n:'Açık',  c:['#F5E8D0','#E8D0A8','#D4B880','#C0A060','#A88040','#906030','#784820','#603010']},
+    {n:'Koyu',  c:['#8A6848','#705030','#583820','#402810','#301808','#201008','#382018','#4A3020']},
+    {n:'Boyalı',c:['#FFFFFF','#E8E8E8','#B0C8B0','#D8C8A0','#C07860','#A85838','#6080C8','#883818']},
   ],
   metal:[
-    {name:'Metal', colors:['#f0f0f0','#d8d8d0','#c0c0b8','#a8a8a0','#909088','#787870','#606058','#484840']},
-    {name:'Renkli',colors:['#c8d8e8','#b0c0d8','#98a8c8','#c8b8a0','#b8a888','#a89878','#d8c8a8','#e8d8b8']},
+    {n:'Metal', c:['#F0F0F0','#D8D8D0','#C0C0B8','#A8A8A0','#909088','#787870','#606058','#484840']},
+    {n:'Renkli',c:['#C8D8E8','#98A8C8','#C8B8A0','#B8A888','#D8C8A8','#E8D8B8','#C8B890','#A89870']},
   ],
   plant:[
-    {name:'Yeşil', colors:['#a8d8a0','#88c080','#60a860','#488040','#306820','#205018','#183810','#102808']},
-    {name:'Saksı', colors:['#e8c890','#d0a860','#b88840','#a06820','#885010','#703808','#582808','#402010']},
+    {n:'Yeşil', c:['#A8D8A0','#88C080','#60A860','#488040','#306820','#205018','#183810','#102808']},
+    {n:'Saksı', c:['#E8C890','#D0A860','#B88840','#A06820','#885010','#703808','#582808','#402010']},
   ],
 };
 
-// ── STATE ─────────────────────────────────────────────────────────────────────
-let renderer, scene, camera, controls;
-const ray = new THREE.Raycaster();
-const floorPl = new THREE.Plane(new THREE.Vector3(0,1,0), 0);
-let placed=[], selected=null, ghost=null, activeKey=null, placing=false, history=[];
-let mats={wall:null,floor:null,ceil:null};
-let sheetOpen=false, activeCat='Tümü';
-let activeCTab=0;
-const templates = {};
-const snap = v => Math.round(v*4)/4;
+// Room swatches
+const WALL_SW  = ['#FFFFFF','#FDF6E3','#FFE8D8','#F8D0C0','#F0C8D0','#D8C0D8','#C0C8D8','#C8D8C8','#B8D0B0','#607888','#3C2820','#1E1820'];
+const FLOOR_SW = ['#F5EFE5','#E8D8C0','#D4B898','#C0A070','#A87848','#C8C0B0','#989080','#887870','#504030','#302010','#1E1210','#8A7060'];
+const CEIL_SW  = ['#FFFFFF','#F8F4F0','#FFFCF8','#FFF0E8','#F0F8FF','#E8F4F8','#F8FFE8'];
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
-function init(){
-  renderer = new THREE.WebGLRenderer({canvas:document.getElementById('cv'),antialias:true,powerPreference:'high-performance'});
-  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.1;
+/* ═══════════════════════════════════════════════════════
+   THREE.JS SETUP
+═══════════════════════════════════════════════════════ */
+const W = window.innerWidth, H = window.innerHeight;
+const renderer = new THREE.WebGLRenderer({
+  canvas: document.getElementById('c'),
+  antialias: true,
+  powerPreference: 'high-performance',
+});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(W, H);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
 
-  scene = new THREE.Scene();
-  // Background matches wall color — seamless even if camera peeks above ceiling
-  scene.background = new THREE.Color(0xfdf6e3);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xEEE5D5); // matches default wall color
 
-  const W = window.innerWidth, H = window.innerHeight;
-  camera = new THREE.PerspectiveCamera(65, W/H, 0.05, 60);
-  // Classic Make Room diorama — camera at eye level inside room, facing back-left corner
-  // Room is 8x8x3.2 — camera must be below y=3.2 (ceiling)
-  camera.position.set(3.8, 1.8, 3.8);
-  camera.lookAt(-2, 0.8, -2);
+const camera = new THREE.PerspectiveCamera(55, W/H, 0.05, 80);
+// Fixed isometric corner view — camera in front-right, looking at back-left corner
+setCameraDefault();
 
-  controls = new OrbitControls(camera, renderer.domElement);
-  controls.target.set(-2, 0.8, -2);
-  controls.minDistance = 3;
-  controls.maxDistance = 18;
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.1;
-  controls.maxPolarAngle = Math.PI / 2.05;
-  controls.touches = {ONE:THREE.TOUCH.ROTATE, TWO:THREE.TOUCH.DOLLY_PAN};
-  controls.update();
-
-  buildRoom();
-  buildLights();
-  buildUI();
-
-  window.addEventListener('resize', onResize);
-  onResize();
-
-  const cv = renderer.domElement;
-  cv.addEventListener('pointerdown', onPtrDown);
-  cv.addEventListener('pointermove', onPtrMove);
-  cv.addEventListener('pointerup',   onPtrUp);
-  window.addEventListener('keydown', onKey);
-
-  loadOBJ();
-  animate();
+function setCameraDefault(){
+  camera.position.set(7, 7.5, 7);
+  camera.lookAt(0, 0.5, 0);
 }
 
-// ── ROOM ──────────────────────────────────────────────────────────────────────
-const ROOM_W=8, ROOM_H=3.2, ROOM_D=8;
+/* ═══════════════════════════════════════════════════════
+   ROOM
+═══════════════════════════════════════════════════════ */
+const ROOM = {W:8, H:3, D:8};
+const mats = {};
 
 function buildRoom(){
-  const W=ROOM_W, H=ROOM_H, D=ROOM_D;
-  mats.floor = new THREE.MeshStandardMaterial({color:0xb89060,roughness:.82,metalness:.02,side:THREE.DoubleSide});
-  mats.wall  = new THREE.MeshStandardMaterial({color:0xfdf6e3,roughness:.9,metalness:0,side:THREE.DoubleSide});
-  mats.ceil  = new THREE.MeshStandardMaterial({color:0xffffff,roughness:.85,metalness:0,side:THREE.DoubleSide});
+  const {W,H,D} = ROOM;
+
+  mats.wall  = new THREE.MeshStandardMaterial({color:0xEEE5D5, roughness:.88, side:THREE.DoubleSide});
+  mats.floor = new THREE.MeshStandardMaterial({color:0xBE9E6E, roughness:.85, metalness:.02, side:THREE.DoubleSide});
+  mats.ceil  = new THREE.MeshStandardMaterial({color:0xF5F0E8, roughness:.9, side:THREE.DoubleSide});
 
   // Floor
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(W,D), mats.floor);
-  floor.rotation.x=-Math.PI/2; floor.receiveShadow=true; floor.name='__floor'; scene.add(floor);
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(W, D), mats.floor);
+  floor.rotation.x = -Math.PI/2;
+  floor.receiveShadow = true;
+  floor.name = '__floor';
+  scene.add(floor);
 
-  // Back wall (faces +z — toward the camera which is at +z)
-  const bw = new THREE.Mesh(new THREE.PlaneGeometry(W,H), mats.wall);
-  bw.position.set(0,H/2,-D/2); bw.receiveShadow=true; bw.name='__bwall'; scene.add(bw);
+  // Back wall (z = -D/2, normal faces +z)
+  const bw = new THREE.Mesh(new THREE.PlaneGeometry(W, H), mats.wall);
+  bw.position.set(0, H/2, -D/2);
+  bw.receiveShadow = true;
+  scene.add(bw);
 
-  // Left wall (faces +x — toward camera at +x side)
-  const lw = new THREE.Mesh(new THREE.PlaneGeometry(D,H), mats.wall);
-  lw.position.set(-W/2,H/2,0); lw.rotation.y=Math.PI/2; lw.receiveShadow=true; lw.name='__lwall'; scene.add(lw);
+  // Left wall (x = -W/2, normal faces +x)
+  const lw = new THREE.Mesh(new THREE.PlaneGeometry(D, H), mats.wall);
+  lw.position.set(-W/2, H/2, 0);
+  lw.rotation.y = Math.PI/2;
+  lw.receiveShadow = true;
+  scene.add(lw);
 
-  // Right wall (faces -x)
-  const rw = new THREE.Mesh(new THREE.PlaneGeometry(D,H), mats.wall);
-  rw.position.set(W/2,H/2,0); rw.rotation.y=-Math.PI/2; rw.receiveShadow=true; rw.name='__rwall'; scene.add(rw);
+  // Ceiling (hidden — background color matches ceiling)
+  const cm = new THREE.Mesh(new THREE.PlaneGeometry(W, D), mats.ceil);
+  cm.rotation.x = Math.PI/2;
+  cm.position.y = H;
+  scene.add(cm);
 
-  // Ceiling (faces downward, visible from inside)
-  const cm = new THREE.Mesh(new THREE.PlaneGeometry(W,D), mats.ceil);
-  cm.rotation.x=Math.PI/2; cm.position.y=H; cm.name='__ceil'; scene.add(cm);
+  // Floor grid
+  const grid = new THREE.GridHelper(W, 16, 0xC4B090, 0xD8C8A8);
+  grid.position.y = 0.002;
+  scene.add(grid);
 
-  // Baseboard trim (thin dark strip at wall base)
-  const trimMat = new THREE.MeshStandardMaterial({color:0xe8d8c8,roughness:.9});
-  [[0,0,-D/2,W,.06,0],[0,0,D/2,W,.06,0],[-W/2,0,0,D,.06,Math.PI/2],[W/2,0,0,D,.06,Math.PI/2]].forEach(([x,y,z,w,h,ry])=>{
-    const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,.04),trimMat);
-    m.position.set(x,.03,z); m.rotation.y=ry; scene.add(m);
-  });
-
-  // Grid helper (subtle)
-  const g=new THREE.GridHelper(W,16,0xc8b8a8,0xddd0c4);
-  g.position.y=.003; g.name='__grid'; scene.add(g);
+  // Baseboard (thin dark strip at wall base)
+  const bm = new THREE.MeshStandardMaterial({color:0xE0CFBE, roughness:.9});
+  const addBoard = (w,d,rx,ry,px,pz) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, 0.05, d), bm);
+    m.position.set(px, 0.025, pz); m.rotation.y = ry; scene.add(m);
+  };
+  addBoard(W,  0.04, 0, 0,      0,    -D/2);
+  addBoard(D,  0.04, 0, Math.PI/2, -W/2, 0);
 }
 
 function buildLights(){
-  // Warm ambient base
-  scene.add(new THREE.AmbientLight(0xfff5e0, 1.2));
+  // Warm ambient base — ensures walls are always bright
+  scene.add(new THREE.AmbientLight(0xFFEED8, 1.6));
 
-  // Main overhead light (ceiling fixture position)
-  const ceil = new THREE.PointLight(0xfffae8, 1.8, 16);
-  ceil.position.set(0, 3.0, 0);
-  ceil.castShadow = true;
-  ceil.shadow.mapSize.set(1024,1024);
-  ceil.shadow.bias = -0.001;
-  scene.add(ceil);
+  // Ceiling overhead light (main)
+  const main = new THREE.PointLight(0xFFF5E0, 2.5, 20);
+  main.position.set(0, 2.8, 0);
+  main.castShadow = true;
+  main.shadow.mapSize.set(1024, 1024);
+  main.shadow.bias = -0.001;
+  scene.add(main);
 
-  // Warm fill from back-left corner (bounces off walls)
-  const fl = new THREE.PointLight(0xffe8c8, 0.7, 18);
-  fl.position.set(-2, 2.0, -2); scene.add(fl);
+  // Warm bounce off the two visible walls
+  const fill = new THREE.PointLight(0xFFDDA0, 1.0, 18);
+  fill.position.set(-2, 2.2, -2);
+  scene.add(fill);
 
-  // Cool daylight from front window (camera direction)
-  const win = new THREE.DirectionalLight(0xe8f0ff, 0.5);
-  win.position.set(4, 6, 6); scene.add(win);
-
-  // Subtle rim from back-right
-  const rim = new THREE.PointLight(0xfff0d8, 0.3, 12);
-  rim.position.set(3, 2.5, -3); scene.add(rim);
+  // Secondary fill from camera side (prevents dark zones)
+  const cam = new THREE.DirectionalLight(0xFFF8F0, 0.6);
+  cam.position.set(5, 7, 7);
+  scene.add(cam);
 }
 
-// ── OBJ LOAD ──────────────────────────────────────────────────────────────────
-function setProgress(p,t){
-  document.getElementById('lfill').style.width=p+'%';
-  document.getElementById('ltxt').textContent=t;
+/* ═══════════════════════════════════════════════════════
+   OBJ LOAD + TEMPLATES
+═══════════════════════════════════════════════════════ */
+const templates = {};
+
+function prog(p, t){
+  document.getElementById('lfill').style.width = p+'%';
+  document.getElementById('ltxt').textContent = t;
 }
 
-async function loadOBJ(){
-  setProgress(5,'furniture.obj yükleniyor...');
-  try{
-    const obj = await new Promise((res,rej)=>
+async function loadAssets(){
+  prog(5, 'Modeller yükleniyor...');
+  try {
+    const root = await new Promise((res, rej) =>
       new OBJLoader().load('models/furniture.obj', res,
-        e=>setProgress(5+Math.round((e.loaded/(e.total||38e6))*70),
-          `${Math.round((e.loaded||0)/1024)} KB yüklendi`),
-        rej)
+        e => prog(5 + Math.round((e.loaded/(e.total||38e6))*75),
+                  `${Math.round((e.loaded||0)/1048576*10)/10} MB`), rej)
     );
-    setProgress(80,'Modeller işleniyor...');
-    parseOBJ(obj);
-    setProgress(100,'Hazır!');
-  } catch(e){
-    console.warn('OBJ yüklenemedi, alternatif geometriler kullanılıyor.',e);
-    buildFallback();
-    setProgress(100,'Hazır (basit mod)');
+    prog(82, 'İşleniyor...');
+    parseOBJ(root);
+    prog(100, 'Hazır!');
+  } catch(e) {
+    console.warn('OBJ yüklenemedi, yedek geometriler kullanılıyor.', e);
+    prog(100, 'Hazır (basit mod)');
   }
-  setTimeout(()=>{
-    document.getElementById('ld').style.display='none';
-    showToast('Mobilya seç → odaya dokun 👆',3500);
-  },400);
+  buildFallbacks();
+  setTimeout(() => {
+    document.getElementById('loader').style.display = 'none';
+    toast('Mobilya seç → odaya dokun 👆', 3000);
+  }, 350);
 }
 
 function parseOBJ(root){
-  const byName={};
-  // Update world matrices so c.matrixWorld reflects actual OBJ positions
+  // Collect named objects
+  const byName = {};
   root.updateWorldMatrix(true, true);
-  root.traverse(c=>{ if(c.name) byName[c.name]=c; });
+  root.traverse(c => {
+    if(c.name) byName[c.name] = c;
+  });
 
-  CATALOG.forEach(item=>{
-    if(!item.o.length) return; // fallback-only items handled in buildFallback
+  CATALOG.forEach(item => {
+    if(!item.o.length) return;
+    const flatMeshes = [];
 
-    // Collect all meshes, baking their world-space transforms into geometry
-    const flatMeshes=[];
-    item.o.forEach(n=>{
-      const src=byName[n]; if(!src) return;
-      src.traverse(c=>{
-        if(!c.isMesh||!c.geometry) return;
+    item.o.forEach(n => {
+      const src = byName[n]; if(!src) return;
+      src.traverse(c => {
+        if(!c.isMesh || !c.geometry) return;
         c.updateWorldMatrix(true, false);
-        const geo=c.geometry.clone();
-        geo.applyMatrix4(c.matrixWorld); // bake pos/rot/scale into vertex coords
+        // Bake world transform into geometry so all parts share one coordinate space
+        const geo = c.geometry.clone();
+        geo.applyMatrix4(c.matrixWorld);
         geo.computeVertexNormals();
-        const mats=([c.material].flat()).map(m=>{
-          const n=m.clone(); n.roughness=.8; n.metalness=.05; return n;
+        const rawMats = [c.material].flat();
+        const mats = rawMats.map(m => {
+          const n = m.clone();
+          n.roughness = .82; n.metalness = .04;
+          return n;
         });
-        const mesh=new THREE.Mesh(geo, mats.length===1?mats[0]:mats);
-        mesh.castShadow=mesh.receiveShadow=true;
+        const mesh = new THREE.Mesh(geo, mats.length===1?mats[0]:mats);
+        mesh.castShadow = mesh.receiveShadow = true;
         flatMeshes.push(mesh);
       });
     });
+
     if(!flatMeshes.length) return;
 
-    const grp=new THREE.Group(); grp.name=item.key;
-    flatMeshes.forEach(m=>grp.add(m));
+    const grp = new THREE.Group();
+    grp.name = item.key;
+    flatMeshes.forEach(m => grp.add(m));
 
-    // Bounding box — geometry is now in world space so setFromObject is correct
-    const box=new THREE.Box3().setFromObject(grp);
-    const ctr=box.getCenter(new THREE.Vector3());
-    const sz=box.getSize(new THREE.Vector3());
-    const minY=box.min.y;
+    // Center geometry at origin, floor at y=0
+    const box = new THREE.Box3().setFromObject(grp);
+    const ctr = box.getCenter(new THREE.Vector3());
+    const sz  = box.getSize(new THREE.Vector3());
 
-    // Center at origin, floor at y=0
-    grp.traverse(c=>{
-      if(!c.isMesh||!c.geometry) return;
-      c.geometry.translate(-ctr.x,-minY,-ctr.z);
+    grp.traverse(c => {
+      if(!c.isMesh || !c.geometry) return;
+      c.geometry.translate(-ctr.x, -box.min.y, -ctr.z);
     });
 
-    // OBJ uses ~cm units → 1 OBJ unit = 0.01 Three.js unit (1m)
-    // Cap at 2.5m max footprint for very large items
-    const footprint=Math.max(sz.x,sz.z,.1);
-    const scale=Math.min(0.01, 2.5/footprint);
-    grp.scale.setScalar(scale);
-    templates[item.key]=grp;
+    // OBJ uses cm units → scale to meters (0.01), max 2.5m footprint
+    const fp = Math.max(sz.x, sz.z, 0.1);
+    grp.scale.setScalar(Math.min(0.01, 2.5/fp));
+    templates[item.key] = grp;
   });
-
-  // Build fallbacks for any catalog items that had no OBJ match
-  buildFallback(true);
 }
 
-function buildFallback(missingOnly=false){
-  const defs={
-    sofa:    ()=>mkBox(2.2,.72,.95,0xc8886a),
-    cushion: ()=>mkBox(.5,.22,.4,0xe8a880),
-    armchair:()=>{const g=new THREE.Group();g.add(mkBox(1.0,.72,.9,0xb87860));const b=mkBox(1.0,.65,.15,0xaa7055);b.position.set(0,.72+.325,-.375);g.add(b);return g;},
-    tv:      ()=>{const g=new THREE.Group();g.add(mkBox(1.8,.06,.42,0x3a3030));const s=mkBox(1.6,.9,.06,0x222222);s.position.set(0,.51,.18);g.add(s);return g;},
-    table:   ()=>mkBox(.9,.52,.9,0xb89060),
-    shelf:   ()=>mkBox(.9,.6,.32,0x9a7848),
-    bookcase:()=>mkBox(1.2,1.8,.32,0xa88050),
-    box_a:   ()=>mkBox(.5,.6,.5,0xa09080),
-    box_b:   ()=>mkBox(.5,.6,.5,0x908070),
-    curtain: ()=>mkBox(.06,2.4,1.2,0xd4a888),
-    window:  ()=>mkBox(.06,1.4,1.0,0xc8dde8),
-    cactus:  ()=>mkBox(.22,.8,.22,0x6a9860),
-    plant:   ()=>mkBox(.4,.9,.4,0x70a870),
-    rug_r:   ()=>mkBox(2.2,.03,1.5,0xc84040),
-    rug_b:   ()=>mkBox(2.2,.03,1.5,0x9a7040),
-    deco_a:  ()=>mkBox(.4,.4,.1,0x8ab8c8),
-    deco_b:  ()=>mkBox(.3,.22,.3,0xe8d060),
-    deco_c:  ()=>mkBox(.4,.4,.4,0x6080c8),
-    deco_set:()=>mkBox(.5,.5,.18,0xe8c080),
-    col_a:   ()=>mkCyl(.12,2.4,0xe0d8c0),
-    col_b:   ()=>mkCyl(.1,2.0,0xd0c8b0),
-    poly:    ()=>mkBox(.6,.6,.6,0xd0b890),
-    lamp:    ()=>{const g=new THREE.Group();g.add(mkCyl(.05,1.4,0xd0c8b0));const s=new THREE.Mesh(new THREE.SphereGeometry(.18,12,8),new THREE.MeshStandardMaterial({color:0xfff8e0,emissive:0xffe080,emissiveIntensity:.5}));s.position.y=1.4;g.add(s);return g;},
-    mirror:  ()=>{const g=new THREE.Group();g.add(mkBox(.08,1.4,0.8,0xd0c8b8));const m=new THREE.Mesh(new THREE.PlaneGeometry(.7,1.2),new THREE.MeshStandardMaterial({color:0xc8d8e8,metalness:.9,roughness:.1}));m.position.set(.05,.7,0);g.add(m);return g;},
+function buildFallbacks(){
+  const defs = {
+    sofa:    ()=>grpOf(box(2.1,.7,.9,0xC8886A)),
+    cushion: ()=>grpOf(box(.5,.22,.4,0xE8A880)),
+    armchair:()=>{const g=new THREE.Group();g.add(box(1.0,.68,.85,0xB87860));const bk=box(1.0,.65,.12,0xA87050);bk.position.set(0,.68+.325,-.365);g.add(bk);return g;},
+    tv:      ()=>{const g=new THREE.Group();g.add(box(1.8,.06,.42,0x3A3030));const s=box(1.55,.9,.06,0x1A1A1A);s.position.set(0,.51,.18);g.add(s);return g;},
+    table:   ()=>grpOf(box(.85,.5,.85,0xB89060)),
+    bookcase:()=>grpOf(box(1.2,1.8,.32,0xA88050)),
+    shelf:   ()=>grpOf(box(.9,.55,.3,0x9A7848)),
+    box_a:   ()=>grpOf(box(.5,.58,.5,0xA09080)),
+    box_b:   ()=>grpOf(box(.5,.58,.5,0x908070)),
+    curtain: ()=>grpOf(box(.06,2.4,1.2,0xD4A888)),
+    window:  ()=>grpOf(box(.06,1.4,1.0,0xC8DCE8)),
+    plant:   ()=>grpOf(box(.4,.9,.4,0x70A870)),
+    cactus:  ()=>grpOf(box(.22,.85,.22,0x6A9860)),
+    rug_r:   ()=>grpOf(box(2.2,.03,1.5,0xC84040)),
+    rug_b:   ()=>grpOf(box(2.2,.03,1.5,0x9A7040)),
+    deco_a:  ()=>grpOf(box(.4,.4,.08,0x8AB8C8)),
+    deco_b:  ()=>grpOf(box(.3,.22,.3,0xE8D060)),
+    deco_c:  ()=>grpOf(box(.4,.4,.4,0x6080C8)),
+    deco_set:()=>grpOf(box(.5,.5,.18,0xE8C080)),
+    lamp:    ()=>{const g=new THREE.Group();g.add(cyl(.04,1.4,0xC8C0B0));const s=new THREE.Mesh(new THREE.SphereGeometry(.18,10,8),new THREE.MeshStandardMaterial({color:0xFFF8E0,emissive:0xFFE080,emissiveIntensity:.6,roughness:.4}));s.position.y=1.4;g.add(s);return g;},
+    mirror:  ()=>{const g=new THREE.Group();g.add(box(.08,1.4,.8,0xD0C8B0));const m=new THREE.Mesh(new THREE.PlaneGeometry(.68,1.18),new THREE.MeshStandardMaterial({color:0xB8D0E0,metalness:.95,roughness:.05}));m.position.set(.05,.7,0);g.add(m);return g;},
+    col_a:   ()=>grpOf(cyl(.13,2.4,0xE0D8C0)),
+    col_b:   ()=>grpOf(cyl(.11,2.0,0xD0C8B0)),
+    poly:    ()=>grpOf(box(.6,.6,.6,0xD0B890)),
   };
-  Object.entries(defs).forEach(([k,fn])=>{
-    if(missingOnly && templates[k]) return; // skip if already built from OBJ
-    const val=fn();
-    const g=val instanceof THREE.Group?val:(()=>{const g=new THREE.Group();g.add(val);return g;})();
-    g.name=k; templates[k]=g;
+  Object.entries(defs).forEach(([k,fn]) => {
+    if(templates[k]) return; // already loaded from OBJ
+    const g = fn();
+    g.name = k;
+    templates[k] = g;
   });
 }
-function mkBox(w,h,d,c=0xccbbaa){
+
+function box(w,h,d,c=0xCCBBAA){
   const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color:c,roughness:.8}));
   m.castShadow=m.receiveShadow=true; m.position.y=h/2; return m;
 }
-function mkCyl(r,h,c=0xccbbaa){
+function cyl(r,h,c=0xCCBBAA){
   const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,16),new THREE.MeshStandardMaterial({color:c,roughness:.8}));
   m.castShadow=m.receiveShadow=true; m.position.y=h/2; return m;
 }
+function grpOf(mesh){const g=new THREE.Group();g.add(mesh);return g;}
 
-// ── UI ────────────────────────────────────────────────────────────────────────
-function buildUI(){
-  // Category tabs
-  const cEl=document.getElementById('cats');
-  ALL_CATS.forEach(cat=>{
-    const b=document.createElement('button');
-    b.className='cat'+(cat==='Tümü'?' on':'');
-    b.textContent=cat;
-    b.onclick=()=>{
-      activeCat=cat;
-      cEl.querySelectorAll('.cat').forEach(x=>x.classList.remove('on'));
-      b.classList.add('on');
-      buildGrid();
-    };
-    cEl.appendChild(b);
-  });
-  buildGrid();
+/* ═══════════════════════════════════════════════════════
+   PLACEMENT STATE
+═══════════════════════════════════════════════════════ */
+const ray = new THREE.Raycaster();
+const floorPlane = new THREE.Plane(new THREE.Vector3(0,1,0), 0);
+let placed = [], selected = null, ghost = null;
+let activeKey = null, placing = false;
+let history = [];
+const snap = v => Math.round(v*4)/4;
 
-  // Room swatches
-  makeSwatch('sw-w', WALL_C,  c=>{ mats.wall.color.set(c); });
-  makeSwatch('sw-f', FLOOR_C, c=>{ mats.floor.color.set(c); });
-  makeSwatch('sw-c', CEIL_C,  c=>{ mats.ceil.color.set(c); });
+function ndcFromClient(cx, cy){
+  const r = renderer.domElement.getBoundingClientRect();
+  return new THREE.Vector2(
+    ((cx - r.left)/r.width)*2 - 1,
+   -((cy - r.top)/r.height)*2 + 1
+  );
+}
+function floorPoint(cx, cy){
+  ray.setFromCamera(ndcFromClient(cx, cy), camera);
+  const t = new THREE.Vector3();
+  return ray.ray.intersectPlane(floorPlane, t) ? t : null;
 }
 
-function buildGrid(){
-  const el=document.getElementById('grid'); el.innerHTML='';
-  CATALOG.filter(i=>activeCat==='Tümü'||i.cat===activeCat).forEach(item=>{
-    const d=document.createElement('div');
-    d.className='fi'; d.id='fi_'+item.key;
-    d.innerHTML=`<div class="e">${item.e}</div><div class="n">${item.name}</div>`;
-    d.onclick=()=>startPlace(item.key);
-    el.appendChild(d);
-  });
-}
-
-function makeSwatch(id, cols, cb){
-  const el=document.getElementById(id);
-  cols.forEach((c,i)=>{
-    const s=document.createElement('div');
-    s.className='sw'+(i===0?' on':'');
-    s.style.background=c;
-    s.onclick=()=>{
-      el.querySelectorAll('.sw').forEach(x=>x.classList.remove('on'));
-      s.classList.add('on'); cb(c);
-    };
-    el.appendChild(s);
-  });
-}
-
-// ── FURNITURE COLOR SHEET ─────────────────────────────────────────────────────
-function buildColorSheet(item){
-  const palettes = COLOR_PALETTES[item.colorType] || COLOR_PALETTES.wood;
-  const tabEl = document.getElementById('ctabs');
-  const palEl = document.getElementById('cpal');
-  tabEl.innerHTML=''; palEl.innerHTML='';
-  activeCTab=0;
-
-  palettes.forEach((pal,i)=>{
-    const b=document.createElement('button');
-    b.className='ctab'+(i===0?' on':'');
-    b.textContent=pal.name;
-    b.onclick=()=>{
-      activeCTab=i;
-      tabEl.querySelectorAll('.ctab').forEach(x=>x.classList.remove('on'));
-      b.classList.add('on');
-      renderPalColors(palettes[i].colors);
-    };
-    tabEl.appendChild(b);
-  });
-  renderPalColors(palettes[0].colors);
-}
-
-function renderPalColors(colors){
-  const palEl=document.getElementById('cpal'); palEl.innerHTML='';
-  colors.forEach(c=>{
-    const d=document.createElement('div');
-    d.className='cp'; d.style.background=c;
-    d.onclick=()=>{
-      if(!selected) return;
-      palEl.querySelectorAll('.cp').forEach(x=>x.classList.remove('on'));
-      d.classList.add('on');
-      applyColorToFurniture(selected, c);
-    };
-    palEl.appendChild(d);
-  });
-}
-
-function applyColorToFurniture(obj, hex){
-  obj.traverse(c=>{
-    if(!c.isMesh) return;
-    ([c.material].flat()).forEach(m=>{
-      m.color.set(hex);
-    });
-  });
-}
-
-window.openColorSheet=function(){
-  if(!selected) return;
-  const item=CATALOG.find(i=>i.key===selected.userData.key);
-  if(!item) return;
-  buildColorSheet(item);
-  document.getElementById('csheet').classList.add('open');
-};
-window.closeCsheet=function(){
-  document.getElementById('csheet').classList.remove('open');
-};
-function closeCsheet(){ window.closeCsheet(); }
-
-// ── SHEETS ────────────────────────────────────────────────────────────────────
-window.showSheet=function(which){
-  if(which==='f'){
-    document.getElementById('rsheet').classList.remove('open');
-    document.getElementById('csheet').classList.remove('open');
-    sheetOpen=true;
-    document.getElementById('sheet').classList.remove('hide');
-    setNav('nav-f');
-  } else {
-    document.getElementById('sheet').classList.add('hide'); sheetOpen=false;
-    document.getElementById('csheet').classList.remove('open');
-    document.getElementById('rsheet').classList.add('open');
-    setNav('nav-r');
-  }
-};
-window.toggleSheet=function(){
-  sheetOpen=!sheetOpen;
-  document.getElementById('sheet').classList.toggle('hide',!sheetOpen);
-};
-window.hideRsheet=function(){ document.getElementById('rsheet').classList.remove('open'); };
-function hideRsheet(){ window.hideRsheet(); }
-function toggleSheet(){ window.toggleSheet(); }
-function setNav(id){ document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on')); document.getElementById(id)?.classList.add('on'); }
-
-// ── PLACING ───────────────────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════
+   PLACE MODE
+═══════════════════════════════════════════════════════ */
 function startPlace(key){
-  activeKey=key; placing=true;
-  controls.enabled=false;
-  document.querySelectorAll('.fi').forEach(e=>e.classList.remove('on'));
+  activeKey = key; placing = true;
+  deselect();
+  removeGhost(); makeGhost(key);
+  document.querySelectorAll('.fi').forEach(f=>f.classList.remove('on'));
   document.getElementById('fi_'+key)?.classList.add('on');
-  deselect(); removeGhost(); makeGhost(key);
-  document.getElementById('ring').classList.add('on');
-  document.getElementById('sh-sub').textContent='📍 Odaya dokun  |  2× → çıkış';
-  document.getElementById('sheet').classList.add('hide'); sheetOpen=false;
-  showToast('Odaya dokun → mobilyayı yerleştir',3000);
+  closePanel();
+  showHint('Odaya dokun → yerleştir  •  2× → iptal');
+  toast('', 0);
 }
+
 function cancelPlace(){
-  placing=false; activeKey=null; controls.enabled=true; removeGhost();
-  document.getElementById('ring').classList.remove('on');
-  document.getElementById('sh-sub').textContent='Seç ve yerleştir';
-  document.querySelectorAll('.fi').forEach(e=>e.classList.remove('on'));
+  placing = false; activeKey = null;
+  removeGhost();
+  document.querySelectorAll('.fi').forEach(f=>f.classList.remove('on'));
+  hideHint();
 }
+
 function makeGhost(key){
   removeGhost();
-  const tmpl=templates[key]; if(!tmpl) return;
-  ghost=tmpl.clone();
+  const tmpl = templates[key]; if(!tmpl) return;
+  ghost = tmpl.clone();
   ghost.traverse(c=>{
     if(!c.isMesh) return;
-    const mm=([c.material].flat()).map(m=>{const n=m.clone();n.transparent=true;n.opacity=.4;return n;});
-    c.material=mm.length===1?mm[0]:mm;
+    const ms = [c.material].flat().map(m=>{const n=m.clone();n.transparent=true;n.opacity=.45;n.depthWrite=false;return n;});
+    c.material = ms.length===1?ms[0]:ms;
   });
-  ghost.name='__ghost'; scene.add(ghost);
+  ghost.name = '__ghost';
+  scene.add(ghost);
 }
 function removeGhost(){ if(ghost){scene.remove(ghost);ghost=null;} }
 
 function placeAt(pt){
-  const tmpl=templates[activeKey]; if(!tmpl){showToast('Model henüz yüklenmedi 😅');return;}
-  const item=CATALOG.find(i=>i.key===activeKey);
-  const cl=tmpl.clone();
-  cl.position.set(snap(pt.x),0,snap(pt.z));
-  cl.userData={key:activeKey, name:item?.name||activeKey};
-  cl.name='placed_'+activeKey+'_'+Date.now();
-  cl.traverse(c=>{if(c.isMesh){c.castShadow=c.receiveShadow=true;}});
-  scene.add(cl); placed.push(cl); history.push({t:'add',o:cl});
+  const tmpl = templates[activeKey];
+  if(!tmpl){ toast('Model yüklenemedi 😅'); return; }
+  const item = CATALOG.find(i=>i.key===activeKey);
+  const cl = tmpl.clone();
+  cl.position.set(snap(pt.x), 0, snap(pt.z));
+  cl.userData = {key:activeKey, name:item?.name||activeKey};
+  cl.name = 'placed__'+activeKey+'__'+Date.now();
+  cl.traverse(c=>{ if(c.isMesh){ c.castShadow=c.receiveShadow=true; }});
+  scene.add(cl); placed.push(cl);
+  history.push({t:'add', o:cl});
   makeGhost(activeKey);
-  showToast(`${item?.name} eklendi ✓`,1400);
+  toast(`${item?.name} eklendi ✓`, 1400);
 }
 
-// ── SELECTION ─────────────────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════
+   SELECTION
+═══════════════════════════════════════════════════════ */
+function trySelect(cx, cy){
+  const ndc = ndcFromClient(cx, cy);
+  ray.setFromCamera(ndc, camera);
+  const meshes = [];
+  placed.forEach(o=>o.traverse(c=>{if(c.isMesh)meshes.push(c);}));
+  const hits = ray.intersectObjects(meshes, false);
+  if(hits.length){
+    let r = hits[0].object;
+    while(r.parent && !r.name.startsWith('placed__')) r = r.parent;
+    if(placed.includes(r)){ doSelect(r); return true; }
+  }
+  deselect();
+  return false;
+}
+
 function doSelect(obj){
-  deselect(); selected=obj;
+  deselect();
+  selected = obj;
+  // Highlight with emissive
   obj.traverse(c=>{
     if(!c.isMesh) return;
-    c.userData._oe=([c.material].flat())[0]?.emissive?.clone()||new THREE.Color(0);
-    ([c.material].flat()).forEach(m=>m.emissive?.set(0x221500));
+    c.userData._emissive = [c.material].flat()[0]?.emissive?.clone() || new THREE.Color(0);
+    [c.material].flat().forEach(m => m.emissive?.set(0x221500));
   });
-  document.getElementById('sel-bar').classList.add('show');
+  document.getElementById('actbar').classList.add('show');
 }
+
 function deselect(){
   if(!selected) return;
   selected.traverse(c=>{
-    if(!c.isMesh||!c.userData._oe) return;
-    ([c.material].flat()).forEach(m=>m.emissive?.copy(c.userData._oe));
+    if(!c.isMesh || !c.userData._emissive) return;
+    [c.material].flat().forEach(m => m.emissive?.copy(c.userData._emissive));
   });
-  selected=null;
-  document.getElementById('sel-bar').classList.remove('show');
-  window.closeCsheet();
+  selected = null;
+  document.getElementById('actbar').classList.remove('show');
+  closeColorPanel();
 }
 
-// ── ACTIONS ───────────────────────────────────────────────────────────────────
-window.rotateSelected=deg=>{ if(selected) selected.rotation.y+=deg*Math.PI/180; };
-window.duplicateSelected=()=>{
-  if(!selected) return;
-  const c=selected.clone(); c.position.x+=0.7;
-  c.userData={...selected.userData};
-  c.name=selected.name+'_dup';
-  scene.add(c); placed.push(c);
-  history.push({t:'add',o:c}); doSelect(c);
-};
-window.deleteSelected=()=>{
-  if(!selected) return;
-  scene.remove(selected); placed.splice(placed.indexOf(selected),1);
-  history.push({t:'del',o:selected}); deselect();
-};
-window.undoLast=()=>{
-  const e=history.pop(); if(!e) return;
-  if(e.t==='add'){scene.remove(e.o);placed.splice(placed.indexOf(e.o),1);if(selected===e.o)deselect();}
-  else{scene.add(e.o);placed.push(e.o);}
-  showToast('Geri alındı',1200);
-};
-window.resetCamera=()=>{
-  camera.position.set(3.8,1.8,3.8);
-  controls.target.set(-2,0.8,-2);
-  controls.update();
-  showToast('Kamera sıfırlandı',1000);
-};
-window.clearRoom=()=>{
-  if(!confirm('Tüm mobilyaları sil?')) return;
-  placed.forEach(o=>scene.remove(o)); placed.length=history.length=0; deselect();
-};
-window.snap2screenshot=()=>{
-  renderer.render(scene,camera);
-  const a=document.createElement('a');
-  a.href=renderer.domElement.toDataURL('image/png');
-  a.download='makeroom.png'; a.click();
-  showToast('Fotoğraf kaydedildi 📸',2000);
-};
+/* ═══════════════════════════════════════════════════════
+   TOUCH CONTROLS
+   - Single tap on floor (placing mode)  → place
+   - Double tap (placing mode)           → cancel
+   - Single tap on furniture             → select
+   - Drag on selected furniture          → move
+   - Tap on empty floor                  → deselect
+═══════════════════════════════════════════════════════ */
+let pStart = null; // {x, y, t}
+let dragging = false, dragOffset = new THREE.Vector3();
+let tapCount = 0, tapTimer = null;
 
-// ── POINTER ───────────────────────────────────────────────────────────────────
-let pDown=0, pMoved=false, pLast={x:0,y:0};
-let dragging=false, dragOff=new THREE.Vector3();
-let tapN=0, tapT=null;
+const cv = renderer.domElement;
+cv.addEventListener('pointerdown', onDown, {passive:false});
+cv.addEventListener('pointermove', onMove, {passive:false});
+cv.addEventListener('pointerup',   onUp,   {passive:false});
+cv.addEventListener('pointercancel', ()=>{ pStart=null; dragging=false; }, {passive:false});
 
-function ndcOf(e){
-  const r=renderer.domElement.getBoundingClientRect();
-  return new THREE.Vector2(
-    ((e.clientX-r.left)/r.width)*2-1,
-   -((e.clientY-r.top)/r.height)*2+1);
-}
-function floorHit(ndc){
-  ray.setFromCamera(ndc,camera);
-  const t=new THREE.Vector3();
-  return ray.ray.intersectPlane(floorPl,t)?t:null;
-}
+function onDown(e){
+  e.preventDefault();
+  pStart = {x:e.clientX, y:e.clientY, t:Date.now()};
+  dragging = false;
 
-function onPtrDown(e){
-  pDown=Date.now(); pMoved=false; pLast={x:e.clientX,y:e.clientY};
-  if(!selected||placing) return;
-  const ndc=ndcOf(e); ray.setFromCamera(ndc,camera);
-  const ms=[]; selected.traverse(c=>{if(c.isMesh)ms.push(c);});
-  if(ray.intersectObjects(ms,false).length){
-    const t=floorHit(ndc);
-    if(t){dragging=true;controls.enabled=false;dragOff.copy(selected.position).sub(t);}
+  // Try to start drag on selected furniture
+  if(selected && !placing){
+    const ndc = ndcFromClient(e.clientX, e.clientY);
+    ray.setFromCamera(ndc, camera);
+    const ms = []; selected.traverse(c=>{if(c.isMesh)ms.push(c);});
+    if(ray.intersectObjects(ms, false).length){
+      const fp = floorPoint(e.clientX, e.clientY);
+      if(fp){ dragOffset.copy(selected.position).sub(fp); dragging=true; }
+    }
   }
 }
-function onPtrMove(e){
-  const dx=e.clientX-pLast.x, dy=e.clientY-pLast.y;
-  if(Math.sqrt(dx*dx+dy*dy)>6) pMoved=true;
-  const ndc=ndcOf(e);
-  if(placing&&ghost){
-    const t=floorHit(ndc); if(t) ghost.position.set(snap(t.x),0,snap(t.z));
-  }
-  if(dragging&&selected){
-    const t=floorHit(ndc);
-    if(t){selected.position.x=snap(t.x+dragOff.x);selected.position.z=snap(t.z+dragOff.z);pMoved=true;}
-  }
-}
-function onPtrUp(e){
-  if(dragging){dragging=false;controls.enabled=!placing;return;}
-  if(pMoved||Date.now()-pDown>380) return;
-  const ndc=ndcOf(e);
 
-  if(placing){
-    tapN++; if(tapT)clearTimeout(tapT);
-    tapT=setTimeout(()=>tapN=0,350);
-    if(tapN>=2){cancelPlace();tapN=0;return;}
-    const t=floorHit(ndc); if(t) placeAt(t);
+function onMove(e){
+  e.preventDefault();
+  if(!pStart) return;
+  const dx = e.clientX-pStart.x, dy = e.clientY-pStart.y;
+  const moved = Math.sqrt(dx*dx+dy*dy) > 8;
+
+  if(placing && ghost){
+    const fp = floorPoint(e.clientX, e.clientY);
+    if(fp) ghost.position.set(snap(fp.x), 0, snap(fp.z));
     return;
   }
 
-  // Hit test placed furniture
-  const ms=[]; placed.forEach(o=>o.traverse(c=>{if(c.isMesh)ms.push(c);}));
-  ray.setFromCamera(ndc,camera);
-  const hits=ray.intersectObjects(ms,false);
-  if(hits.length){
-    let r=hits[0].object;
-    while(r.parent&&!r.name.startsWith('placed_'))r=r.parent;
-    if(placed.includes(r)){doSelect(r);return;}
+  if(dragging && selected && moved){
+    const fp = floorPoint(e.clientX, e.clientY);
+    if(fp){
+      selected.position.x = snap(fp.x + dragOffset.x);
+      selected.position.z = snap(fp.z + dragOffset.z);
+    }
   }
-  deselect();
 }
 
-function onKey(e){
-  if(e.key==='Escape'){placing?cancelPlace():deselect();}
-  if(e.key==='r') window.rotateSelected(90);
-  if(e.key==='Delete'||e.key==='Backspace') window.deleteSelected();
-  if((e.metaKey||e.ctrlKey)&&e.key==='z') window.undoLast();
+function onUp(e){
+  e.preventDefault();
+  if(!pStart) return;
+  const dx = e.clientX-pStart.x, dy = e.clientY-pStart.y;
+  const moved = Math.sqrt(dx*dx+dy*dy) > 10;
+  const dt = Date.now()-pStart.t;
+  const wasDragging = dragging;
+  dragging = false;
+  pStart = null;
+
+  if(wasDragging || moved || dt > 400) return;
+
+  if(placing){
+    tapCount++;
+    clearTimeout(tapTimer);
+    if(tapCount >= 2){ tapCount=0; cancelPlace(); return; }
+    tapTimer = setTimeout(()=>tapCount=0, 380);
+    const fp = floorPoint(e.clientX, e.clientY);
+    if(fp) placeAt(fp);
+    return;
+  }
+
+  trySelect(e.clientX, e.clientY);
 }
 
-// ── RESIZE ────────────────────────────────────────────────────────────────────
-function onResize(){
-  camera.aspect=innerWidth/innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth,innerHeight,false);
-}
-
-// ── TOAST ─────────────────────────────────────────────────────────────────────
-let toastTmr;
-window.showToast=function(msg,dur=3000){
-  const el=document.getElementById('toast');
-  el.textContent=msg; el.classList.add('on');
-  clearTimeout(toastTmr);
-  toastTmr=setTimeout(()=>el.classList.remove('on'),dur);
+/* ═══════════════════════════════════════════════════════
+   ACTION BUTTONS
+═══════════════════════════════════════════════════════ */
+document.getElementById('act-rot').onclick = ()=>{
+  if(selected) selected.rotation.y += Math.PI/2;
 };
-function showToast(m,d){ window.showToast(m,d); }
+document.getElementById('act-dup').onclick = ()=>{
+  if(!selected) return;
+  const cl = selected.clone();
+  cl.position.set(selected.position.x+0.7, 0, selected.position.z);
+  cl.userData = {...selected.userData};
+  cl.name = selected.name+'_dup';
+  scene.add(cl); placed.push(cl);
+  history.push({t:'add', o:cl});
+  doSelect(cl);
+};
+document.getElementById('act-del').onclick = ()=>{
+  if(!selected) return;
+  scene.remove(selected);
+  placed.splice(placed.indexOf(selected),1);
+  history.push({t:'del', o:selected});
+  deselect();
+};
+document.getElementById('act-color').onclick = openColorPanel;
 
-// ── RENDER LOOP ───────────────────────────────────────────────────────────────
-function animate(){ requestAnimationFrame(animate); controls.update(); renderer.render(scene,camera); }
+document.getElementById('btn-ss').onclick = ()=>{
+  renderer.render(scene, camera);
+  const a = document.createElement('a');
+  a.href = renderer.domElement.toDataURL('image/png');
+  a.download = 'makeroom.png'; a.click();
+  toast('Fotoğraf kaydedildi 📸', 2000);
+};
 
-init();
+document.getElementById('btn-room').onclick = ()=>{
+  document.getElementById('roompanel').classList.add('open');
+};
+document.getElementById('rph-close').onclick = ()=>{
+  document.getElementById('roompanel').classList.remove('open');
+};
+
+/* ═══════════════════════════════════════════════════════
+   COLOR PANEL
+═══════════════════════════════════════════════════════ */
+let activePalIdx = 0;
+
+function openColorPanel(){
+  if(!selected) return;
+  const item = CATALOG.find(i=>i.key===selected.userData.key);
+  if(!item) return;
+  const pals = PAL[item.ct] || PAL.wood;
+  const tabEl = document.getElementById('ctabs');
+  const colEl = document.getElementById('ccolors');
+  tabEl.innerHTML = ''; colEl.innerHTML = '';
+  activePalIdx = 0;
+
+  pals.forEach((p,i)=>{
+    const b = document.createElement('button');
+    b.className='ctab'+(i===0?' on':'');
+    b.textContent = p.n;
+    b.onclick = ()=>{
+      activePalIdx = i;
+      tabEl.querySelectorAll('.ctab').forEach(t=>t.classList.remove('on'));
+      b.classList.add('on');
+      renderColors(pals[i].c);
+    };
+    tabEl.appendChild(b);
+  });
+  renderColors(pals[0].c);
+  document.getElementById('colorpanel').classList.add('open');
+}
+
+function renderColors(colors){
+  const el = document.getElementById('ccolors');
+  el.innerHTML = '';
+  colors.forEach(hex=>{
+    const d = document.createElement('div');
+    d.className = 'cc'; d.style.background = hex;
+    d.onclick = ()=>{
+      if(!selected) return;
+      el.querySelectorAll('.cc').forEach(c=>c.classList.remove('on'));
+      d.classList.add('on');
+      selected.traverse(c=>{
+        if(!c.isMesh) return;
+        [c.material].flat().forEach(m=>m.color.set(hex));
+      });
+    };
+    el.appendChild(d);
+  });
+}
+
+function closeColorPanel(){ document.getElementById('colorpanel').classList.remove('open'); }
+document.getElementById('cph-close').onclick = closeColorPanel;
+
+/* ═══════════════════════════════════════════════════════
+   ROOM SWATCHES
+═══════════════════════════════════════════════════════ */
+function makeSwatch(id, colors, onChange){
+  const el = document.getElementById(id);
+  colors.forEach((c,i)=>{
+    const d = document.createElement('div');
+    d.className = 'swatch'+(i===0?' on':'');
+    d.style.background = c;
+    d.onclick = ()=>{
+      el.querySelectorAll('.swatch').forEach(s=>s.classList.remove('on'));
+      d.classList.add('on');
+      onChange(c);
+    };
+    el.appendChild(d);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════
+   PANEL / UI BUILDING
+═══════════════════════════════════════════════════════ */
+let panelOpen = false;
+let activeCat = 'Tümü';
+
+function buildUI(){
+  // Category tabs
+  const tabEl = document.getElementById('ptabs');
+  CATS.forEach(cat=>{
+    const b = document.createElement('button');
+    b.className = 'ptab'+(cat==='Tümü'?' on':'');
+    b.textContent = cat;
+    b.onclick = ()=>{
+      activeCat = cat;
+      tabEl.querySelectorAll('.ptab').forEach(t=>t.classList.remove('on'));
+      b.classList.add('on');
+      buildGrid();
+    };
+    tabEl.appendChild(b);
+  });
+  buildGrid();
+
+  // Room swatches
+  makeSwatch('sw-wall',  WALL_SW,  c=>{ mats.wall.color.set(c); scene.background = new THREE.Color(c); });
+  makeSwatch('sw-floor', FLOOR_SW, c=>mats.floor.color.set(c));
+  makeSwatch('sw-ceil',  CEIL_SW,  c=>mats.ceil.color.set(c));
+
+  // Panel toggle
+  document.getElementById('panel-toggle').onclick = togglePanel;
+}
+
+function buildGrid(){
+  const el = document.getElementById('fgrid'); el.innerHTML = '';
+  CATALOG.filter(i=>activeCat==='Tümü'||i.cat===activeCat).forEach(item=>{
+    const d = document.createElement('div');
+    d.className = 'fi'; d.id = 'fi_'+item.key;
+    d.innerHTML = `<div class="fe">${item.e}</div><div class="fn">${item.name}</div>`;
+    d.onclick = ()=> startPlace(item.key);
+    el.appendChild(d);
+  });
+}
+
+function togglePanel(){
+  panelOpen = !panelOpen;
+  document.getElementById('panel').classList.toggle('open', panelOpen);
+  if(panelOpen) deselect();
+}
+function closePanel(){
+  panelOpen = false;
+  document.getElementById('panel').classList.remove('open');
+}
+
+// Also open panel when tapping bottom area (panel peek)
+cv.addEventListener('click', e=>{
+  const panelY = window.innerHeight - parseInt(getComputedStyle(document.documentElement).getPropertyValue('--panel-peek'));
+  if(e.clientY > panelY && !panelOpen && !placing){
+    togglePanel();
+  }
+}, false);
+
+/* ═══════════════════════════════════════════════════════
+   UNDO / CLEAR
+═══════════════════════════════════════════════════════ */
+window.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){ placing ? cancelPlace() : deselect(); }
+  if(e.key==='r' && selected) selected.rotation.y += Math.PI/2;
+  if((e.metaKey||e.ctrlKey)&&e.key==='z'){
+    const ev = history.pop(); if(!ev) return;
+    if(ev.t==='add'){ scene.remove(ev.o); placed.splice(placed.indexOf(ev.o),1); if(selected===ev.o)deselect(); }
+    else { scene.add(ev.o); placed.push(ev.o); }
+    toast('Geri alındı', 1000);
+  }
+});
+
+/* ═══════════════════════════════════════════════════════
+   TOAST / HINT HELPERS
+═══════════════════════════════════════════════════════ */
+let _toastTmr;
+function toast(msg, dur=2800){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.toggle('on', !!msg);
+  clearTimeout(_toastTmr);
+  if(msg && dur) _toastTmr = setTimeout(()=>el.classList.remove('on'), dur);
+}
+function showHint(msg){ const h=document.getElementById('hint'); h.textContent=msg; h.classList.add('show'); }
+function hideHint(){ document.getElementById('hint').classList.remove('show'); }
+
+/* ═══════════════════════════════════════════════════════
+   RESIZE
+═══════════════════════════════════════════════════════ */
+window.addEventListener('resize', ()=>{
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+/* ═══════════════════════════════════════════════════════
+   RENDER LOOP
+═══════════════════════════════════════════════════════ */
+function animate(){
+  requestAnimationFrame(animate);
+  renderer.render(scene, camera);
+}
+
+/* ═══════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════ */
+buildRoom();
+buildLights();
+buildUI();
+animate();
+loadAssets();
 </script>
 </body>
 </html>
